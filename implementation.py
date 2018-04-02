@@ -97,7 +97,8 @@ def start_game(config_name, player_types):
                 order = input('Order of %s: ' % player)
                 interpret_orders(new_orders, order, player, ships_type, players, ships_ingame, game_board)
             else:
-                interpret_orders(new_orders, ia(), player, ships_type, players, ships_ingame, game_board)
+                interpret_orders(new_orders, ia(players, ships_ingame, ships_type),
+                                 player, ships_type, players, ships_ingame, game_board)
 
         print(new_orders)
         # Buying Phase
@@ -314,7 +315,7 @@ def move_ship(orders, ships_ingame):
 
     for order in orders:
         ship_name = order['order'].split(':')[0]
-        new_position = order.split(':')[1].replace('@', '')
+        new_position = order['order'].split(':')[1].replace('@', '')
         new_position = new_position.split('-')
         new_position = [int(new_position[0]), int(new_position[1])]
         ships_ingame[ship_name]['position'] = new_position
@@ -1006,7 +1007,7 @@ def get_winner(players, info):
 #   IA Functions
 #
 
-def ia():
+def ia(players, ships_ingame, ships_type):
     """
     Basic action of the ia
 
@@ -1020,8 +1021,30 @@ def ia():
     Version
     -------
     """
-    # TODO
-    return 'dave:scout olivaw:*32-4 robbie:lock speedy:release dave:@21-4'
+    # TODO: random lock, unlock, attack
+    orders = []
+
+    for player in players:
+        if players[player]['type'] is 'ia':
+            # Random Move
+            for ship_name in players[player]['ships']:
+                ship = ships_ingame[ship_name]
+                current_pos = ship['position']
+                new_pos_r = current_pos[0] + random.randint(-1, 1)
+                new_pos_c = current_pos[1] + random.randint(-1, 1)
+                orders.append('%s:@%d-%d' % (ship_name, new_pos_r, new_pos_c))
+
+            # Random Buy
+            money = players[player]['ore']
+            for ship_type in ships_type:
+                if money >= ships_type[ship_type]['cost']:
+                    chance = random.random()
+                    if chance > 0.5:
+                        money -= ships_type[ship_type]['cost']
+                        ship_name = 'ia_ship#%d' % random.randint(0, 999)
+                        orders.append('%s:%s' % (ship_name, ship_type))
+
+    return ' '.join(orders)
 
 
 #
@@ -1133,4 +1156,4 @@ def can_recolt(ores, info, ship_name, asteroid_position):
     pass
 
 
-start_game('game.txt', ['human', 'ia'])
+start_game('game.txt', ['ia', 'ia'])
