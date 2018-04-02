@@ -1,0 +1,55 @@
+def ia(ships_type, ships_structure, ships_ingame, ships_team, game_board):
+    INPUT: All the data structures of the game
+    OUTPUT: None
+
+    if it is the time to buy ships:
+        if it is the 1st turn:
+            if the number of asteroids on the board < 5:
+                buy 2 excavator-M
+            else:
+                buy 1 excavator-M & 2 excavator-S
+        else:
+            if our portal's life < 80% of enemy portal's life:
+                if nb_excavators < 2:
+                    buy excavator according to money
+                else:
+                    buy attack ships (warship, scout)
+            elif our portal's life > 120% of enemy portal's life:
+                if nb_excavators < nb_asteroids:
+                    buy excavators according to money
+                else:
+                    buy attack ships (warship, scout)
+            else:
+                if nb_attack_ship > nb_excavators AND nb_excavators < nb_asteroids:
+                    buy excavators according to money
+                else:
+                    buy attack ships (Warship, Scout)
+    elif it is time to lock/unlock:
+        if 'target' of the ship is asteroid/portal and that ship is on the 'target' position:
+            lock the ship to the 'target'
+        elif excavator is full & locked to an asteroid OR excavator is empty & locked to the portal:
+            unlock the ship from the asteroid/portal
+    elif it is time to move & fight:
+        if type is 'excavator':
+            if unlocked:
+                if full:
+                    move towards the portal
+                else:
+                    move towards to best asteroid
+                    (formula: the best = MAX(distance_enemy_portal<>asteroid / distance_own_portal<>asteroid))
+        elif type is 'scout':
+            move towards the closest enemy ship
+        elif type is 'warship':
+            if can find a ship from us of type 'warship' near enemy portal:
+                move next to our portal
+            else:
+                move towards the enemy portal
+
+        if ship is in range of enemy ship or enemy portal center:
+            attack enemy ship/portal (Always attack center of portal)
+
+
+
+
+
+

@@ -1,0 +1,8 @@
+Passage du fichier game.txt -> structures de données :
+    - fonctions pour ouvrir le fichier et renvoyer une liste avec toutes les lignes du fichiers
+    - SIZE :
+        * get index de 'size:\n' -> line + 1 : 'x y\n' -> remove '\n' & split ' ' : [0]: x ; [1]: y
+    - PORTALS :
+        * from index('portals:') + 1 to index('asteroids:') - 1
+    - ASREROIDS :
+        * from index('asteroids:') + 1 to end
