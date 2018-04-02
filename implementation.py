@@ -1,5 +1,6 @@
 import colored
 import random
+import time
 
 
 def start_game(config_name, player_types):
@@ -84,6 +85,7 @@ def start_game(config_name, player_types):
         players[name]['ships'] = []
 
     while check_end_game(game_board, players):
+        time.sleep(1)
         new_orders = {
             'buy_orders': [],
             'lock_orders': [],
