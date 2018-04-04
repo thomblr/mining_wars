@@ -170,7 +170,7 @@ def build_empty_board(info, board):
     for i in range(info['size'][0]):
         sub_list = []
         for j in range(info['size'][1]):
-            sub_list.append('◻')
+            sub_list.append('\u25A1')
         board.append(sub_list)
 
 
@@ -197,7 +197,7 @@ def add_ships_to_board(board, ships, ships_structure):
         structure = ships_structure[ship_type]
 
         for pos in structure:
-            board[ship_x + int(pos[0]) - 1][ship_y + int(pos[1]) - 1] = '◼'
+            board[ship_x + int(pos[0]) - 1][ship_y + int(pos[1]) - 1] = '\u25A0'
 
 
 def add_asteroids_to_board(board, info):
@@ -219,7 +219,7 @@ def add_asteroids_to_board(board, info):
         pos_y = asteroid['position'][1]
         ore = asteroid['ore']
         color = colored.fg('red') if ore > 0 else colored.fg('white')
-        board[int(pos_x) - 1][int(pos_y) - 1] = color + '✹' + colored.attr('reset')
+        board[int(pos_x) - 1][int(pos_y) - 1] = color + '\u2739' + colored.attr('reset')
 
 
 def add_portals_to_board(board, info):
@@ -241,7 +241,7 @@ def add_portals_to_board(board, info):
         pos_y = portal['position'][1]
         for i in range(-2, 3):
             for j in range(-2, 3):
-                board[int(pos_x) + i - 1][int(pos_y) + j - 1] = '◍'
+                board[int(pos_x) + i - 1][int(pos_y) + j - 1] = '\u25CD'
 
 
 #
