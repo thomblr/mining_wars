@@ -1176,7 +1176,7 @@ def check_range(attacker, target_pos, ships_ingame, ships_type):
     return distance <= ships_type[attacker_ship['type']]['range']
 
 
-def can_recolt(ores, info, ship_name, asteroid_position):
+def can_recolt(ores, info, ship_name, asteroid_position, ships_ingame, ships_type):
     """
     Check either or not a ship can recolt on an asteroid.
 
@@ -1196,10 +1196,14 @@ def can_recolt(ores, info, ship_name, asteroid_position):
     recolt: if the ship can recolt (bool)
     """
 
-    # TODO: Check if same position
-    # Check if still enough place on the ship
-    # Check if extractor
-    pass
+    if ships_ingame[ship_name]['type'] in ['Excavator-S', 'Excavator-M', 'Excavator-L']:
+        tonnage = ships_type[ships_ingame[ship_name]['type']]['tonnage']
+        stock = ships_ingame[ship_name]['ore']
+        if tonnage - stock > 0:
+            if asteroid_position == ships_ingame[ship_name]['position']:
+                return True
+
+    return False
 
 
 start_game('game.txt', ['ia', 'ia'])
