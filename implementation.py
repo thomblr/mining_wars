@@ -116,7 +116,7 @@ def start_game(config_name, player_types):
         attack_ship(new_orders['attack_orders'], game_board, ships_ingame, ships_type)
 
         # Recolt Phase
-        collect_ores(game_board, ships_ingame, players)
+        collect_ores(game_board, ships_ingame, players, ships_type)
 
         # Show board
         draw_board(game_board, ships_ingame, ships_structure)
@@ -384,46 +384,61 @@ def collect_ores(info, ships_ingame, players, ships_type):
     for asteroid in info['asteroids']:
         ships_locked = asteroid['ships_locked']
 
-        ores_left = asteroid['ore']
-        ores_rate = asteroid['rate']
-        nb_ships = len(ships_locked)
+        ores_left = asteroid['ore']  # Ores left to collect in the asteroid
+        ores_rate = asteroid['rate']  # The rate of giving of the asteroid
+        nb_ships = len(ships_locked)  # The number of ships locked to the asteroid
 
-        max_ores = {}
+        max_ores = {}  # Data structure used to compute the number of ores to give to each ship
 
+        # The part where we compute the max number of ores to give to a ship
         for ship in ships_locked:
             capacity = ships_type[ships_ingame[ship]['tonnage']] - ships_ingame[ship]['ore']
+            # If the rate is greater than the capacity of the ship ...
             if ores_rate > capacity:
+                # ... we can only give the capacity of the ship
                 max_ores[ship] = capacity
             else:
+                # ... or we can give the rate of the asteroid because there is enough place
                 max_ores[ship] = ores_rate
 
+        # The maximum number of ores to give to all the ships
         total_ores_to_give = 0
         for o in max_ores:
             total_ores_to_give += max_ores[o]
 
+        # If the number of ores to give is less than what's left in the asteroid ...
         if total_ores_to_give < ores_left:
             for ship in ships_locked:
+                # ... we can give to each ship the max they can have
                 ships_ingame[ship]['ore'] += max_ores[ship]
+        # The max number is greater than what's left in the asteroid -> we have to split
         else:
-            new_ores_left = ores_left
-            new_nb_ships = nb_ships
+            new_ores_left = ores_left  # We save ores_left to modify it
+            new_nb_ships = nb_ships  # We save nb_ships to modify it
+
+            # While there are ores left in the asteroid
             while new_ores_left > 0:
+
+                # We compute the minimum of the ores the ships can collect
                 current_min = -1
                 for o in max_ores:
                     if max_ores[o] < current_min or current_min == -1:
                         current_min = max_ores[o]
 
+                # We multiply the min by the number of ships to see if we can give that min to all the ships
                 if current_min * nb_ships <= ores_left:
                     for ship in ships_locked:
-                        ships_ingame[ship]['ore'] += current_min
-                        new_ores_left -= current_min
-                        max_ores[ship] -= current_min
+                        ships_ingame[ship]['ore'] += current_min  # We give the min to each ships
+                        new_ores_left -= current_min  # We subtract the min to see what's left to the asteroid
+                        max_ores[ship] -= current_min  # We subtract the min to see what the ship can recolt
+                # If the min is greater to what the ships can recolt
                 else:
                     for ship in ships_locked:
                         ships_ingame[ship]['ore'] += (ores_left / new_nb_ships)
                         new_ores_left -= (ores_left / new_nb_ships)
                         max_ores[ship] -= current_min
 
+                # We remove the full ships
                 for o in max_ores:
                     if max_ores[o] == 0:
                         del max_ores[o]
