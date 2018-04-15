@@ -69,6 +69,7 @@ def start_game(config_name, player_types):
     game_board['size'] = load_size(info)
     game_board['portals'] = load_portals(info)
     game_board['asteroids'] = load_asteroids(info)
+    game_board['empty_round_left'] = 20
 
     # Create names for the players
     for player in player_types:
@@ -84,7 +85,9 @@ def start_game(config_name, player_types):
         players[name]['total_recolted'] = 0
         players[name]['ships'] = []
 
-    while check_end_game(game_board, players):
+    no_damage_in_the_round = True
+
+    while check_end_game(game_board, players, no_damage_in_the_round):
         time.sleep(1)
         new_orders = {
             'buy_orders': [],
@@ -113,7 +116,7 @@ def start_game(config_name, player_types):
         move_ship(new_orders['move_orders'], ships_ingame)
 
         # Attack Phase
-        attack_ship(new_orders['attack_orders'], game_board, ships_ingame, ships_type)
+        no_damage_in_the_round = attack_ship(new_orders['attack_orders'], game_board, ships_ingame, ships_type)
 
         # Recolt Phase
         collect_ores(game_board, ships_ingame, players, ships_type)
@@ -334,7 +337,7 @@ def attack_ship(orders, info, ships_ingame, ships_type):
 
     Returns
     -------
-    None
+    damage: if there was any damage done
 
     Version
     -------
@@ -363,6 +366,9 @@ def attack_ship(orders, info, ships_ingame, ships_type):
             if ships_ingame[ship]['life'] <= 0:
                 print('The ship %s has been destroyed.' % ship)
                 del ships_ingame[ship]
+
+        return True
+    return False
 
 
 def collect_ores(info, ships_ingame, players, ships_type):
@@ -948,7 +954,7 @@ def new_unlock_order(order, player_name, players, ships_ingame, info):
 #
 
 
-def check_end_game(info, players):
+def check_end_game(info, players, damage):
     """
     Check if a portal is destroyed or no damage has been done for 20 turns.
 
@@ -966,7 +972,10 @@ def check_end_game(info, players):
     specification: Cyril Weber, Thomas Blanchy (v.2 01/04/2018)
     """
 
-    # TODO : add 'no damage since X rounds'
+    if damage:
+        info['empty_round_left'] -= 1
+    if info['empty_round_left'] == 0:
+        return False
     for portal in info['portals']:
         if portal['life'] <= 0:
             return False
@@ -1174,36 +1183,6 @@ def check_range(attacker, target_pos, ships_ingame, ships_type):
     distance = r_value + c_value
 
     return distance <= ships_type[attacker_ship['type']]['range']
-
-
-def can_recolt(ores, info, ship_name, asteroid_position, ships_ingame, ships_type):
-    """
-    Check either or not a ship can recolt on an asteroid.
-
-    Version
-    -------
-    specification: Thomas Blanchy (v.1 03/03/2018)
-
-    Parameters
-    ----------
-    ores: the number of ores to add to the ship (float)
-    info: the information of the game (dictionary)
-    ship_name: the name of the ship that wants to recolt (str)
-    asteroid_position: the position of the asteroid to recolt to (list)
-
-    Returns
-    -------
-    recolt: if the ship can recolt (bool)
-    """
-
-    if ships_ingame[ship_name]['type'] in ['Excavator-S', 'Excavator-M', 'Excavator-L']:
-        tonnage = ships_type[ships_ingame[ship_name]['type']]['tonnage']
-        stock = ships_ingame[ship_name]['ore']
-        if tonnage - stock > 0:
-            if asteroid_position == ships_ingame[ship_name]['position']:
-                return True
-
-    return False
 
 
 start_game('game.txt', ['ia', 'ia'])
