@@ -365,7 +365,7 @@ def attack_ship(orders, info, ships_ingame, ships_type):
                 del ships_ingame[ship]
 
 
-def collect_ores(info, ships_ingame, players):
+def collect_ores(info, ships_ingame, players, ships_type):
     """
     Collect the ores from the asteroids locked by a ship and unload the ores in the portal if a ship is locked
 
@@ -387,17 +387,49 @@ def collect_ores(info, ships_ingame, players):
         ores_left = asteroid['ore']
         ores_rate = asteroid['rate']
         nb_ships = len(ships_locked)
-        ores_a_ship = ores_left / (nb_ships if nb_ships > 0 else 1)
 
-        for ship_name in ships_locked:
-            if ores_a_ship > ores_rate:
-                ores_to_add = ores_rate
+        max_ores = {}
+
+        for ship in ships_locked:
+            capacity = ships_type[ships_ingame[ship]['tonnage']] - ships_ingame[ship]['ore']
+            if ores_rate > capacity:
+                max_ores[ship] = capacity
             else:
-                ores_to_add = ores_a_ship
+                max_ores[ship] = ores_rate
 
-            if can_recolt(ores_to_add, info, ship_name, asteroid['position']):
-                ships_ingame[ship_name]['ore'] = ships_ingame[ship_name]['ore'] + ores_to_add
+        total_ores_to_give = 0
+        for o in max_ores:
+            total_ores_to_give += max_ores[o]
 
+        if total_ores_to_give < ores_left:
+            for ship in ships_locked:
+                ships_ingame[ship]['ore'] += max_ores[ship]
+        else:
+            new_ores_left = ores_left
+            new_nb_ships = nb_ships
+            while new_ores_left > 0:
+                current_min = -1
+                for o in max_ores:
+                    if max_ores[o] < current_min or current_min == -1:
+                        current_min = max_ores[o]
+
+                if current_min * nb_ships <= ores_left:
+                    for ship in ships_locked:
+                        ships_ingame[ship]['ore'] += current_min
+                        new_ores_left -= current_min
+                        max_ores[ship] -= current_min
+                else:
+                    for ship in ships_locked:
+                        ships_ingame[ship]['ore'] += (ores_left / new_nb_ships)
+                        new_ores_left -= (ores_left / new_nb_ships)
+                        max_ores[ship] -= current_min
+
+                for o in max_ores:
+                    if max_ores[o] == 0:
+                        del max_ores[o]
+                        new_nb_ships -= 1
+
+    # Load ores to portals
     for portal in info['portals']:
         ships_locked = portal['ships_locked']
         for ship in ships_locked:
