@@ -1129,7 +1129,7 @@ def ia(players, ships_ingame, ships_type, info):
     specification:
     implementation:
     """
-    # TODO: random lock, unlock, attack
+    # TODO: attack
     orders = []
 
     for player in players:
@@ -1173,6 +1173,22 @@ def ia(players, ships_ingame, ships_type, info):
                         money -= ships_type[ship_type]['cost']
                         ship_name = 'ia_ship#%d' % random.randint(0, 999)
                         orders.append('%s:%s' % (ship_name, ship_type))
+
+            # Lock
+            for asteroid in info['asteroids']:
+                for ship in ships_ingame:
+                    if ship in ['Excavator-S', 'Excavator-M', 'Excavator-L']:
+                        if asteroid['position'] == ships_ingame[ship]['position']:
+                            if ship not in asteroid['ships_locked']:
+                                orders.append('%s:lock' % ship)
+
+            # Unlock
+            for asteroid in info['asteroids']:
+                for ship in asteroid['ships_locked']:
+                    if ships_ingame[ship]['ore'] == ships_type[ships_ingame[ship]['type']]['tonnage']:
+                        orders.append('%s:release' % ship)
+
+            # Attack
 
     return ' '.join(orders)
 
@@ -1286,8 +1302,8 @@ def get_closest_asteroid(info, position):
 
     for asteroid in info['asteroids']:
         asteroid_pos = asteroid['position']
-        diff_x = abs(position[0] - asteroid_pos[0])
-        diff_y = abs(position[1] - asteroid_pos[1])
+        diff_x = position[0] - asteroid_pos[0]
+        diff_y = position[1] - asteroid_pos[1]
 
         close = False
         if diff_x < current_diff_x or current_diff_x == -1:
