@@ -660,7 +660,7 @@ def interpret_orders(new_orders, orders, player_name, ships_type, players, ships
     implementation:
     """
 
-    all_orders = orders.split(' ')
+    all_orders = orders[:-1].split(' ')
     for order in all_orders:
         order_name = order.split(':')[1]
 
@@ -1268,4 +1268,4 @@ def check_range(attacker, target_pos, ships_ingame, ships_type):
     return distance <= ships_type[attacker_ship['type']]['range']
 
 
-start_game('game.txt', ['ia', 'ia'])
+start_game('game.txt', ['human', 'ia'])
