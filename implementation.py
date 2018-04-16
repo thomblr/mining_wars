@@ -7,14 +7,15 @@ def start_game(config_name, player_types):
     """
     The main function to start the game.
 
-    Version
-    -------
-    specification: Thomas Blanchy (v.2 09/03/2018)
-
     Parameters
     ----------
     config_name: the name of the file configuration (str)
     player_types: the types of the players (list)
+
+    Version
+    -------
+    specification: Thomas Blanchy (v.2 09/03/2018)
+    implementation:
     """
 
     # All the data structures that will be used
@@ -137,15 +138,16 @@ def draw_board(info, ships, ships_structure):
     """
     Draw the game board and refresh every round.
 
-    Version
-    -------
-    specification: Joaquim Peremans (v.1 05/03/2018)
-
     Parameters
     ----------
     info: the information of the game (dictionary)
     ships: the ships in game (dictionary)
     ships_structure: the structure of the ships (dictionary)
+
+    Version
+    -------
+    specification: Joaquim Peremans (v.1 05/03/2018)
+    implementation:
     """
 
     board = []
@@ -168,6 +170,11 @@ def build_empty_board(info, board):
     ----------
     info: all the information of the game (dictionary)
     board: the current game board (list)
+
+    Version
+    -------
+    specification:
+    implementation:
     """
 
     for i in range(info['size'][0]):
@@ -181,15 +188,16 @@ def add_ships_to_board(board, ships, ships_structure):
     """
     Add the ships in game to the board.
 
-    Version
-    -------
-    specification: Joaquim Peremans (v.1 05/03/2018)
-
     Parameters
     ----------
     board: the current game board (list)
     ships: the ships in game (dictionary)
     ships_structure: the structure of the ships (dictionary)
+
+    Version
+    -------
+    specification: Joaquim Peremans (v.1 05/03/2018)
+    implementation:
     """
 
     for ship in ships:
@@ -207,14 +215,15 @@ def add_asteroids_to_board(board, info):
     """
     Add the asteroids to the board.
 
-    Version
-    -------
-    specification: Joaquim Peremans (v.1 05/03/2018)
-
     Parameters
     ----------
     board: the current game board (list)
     info: the data structure with the asteroids (dictionary)
+
+    Version
+    -------
+    specification: Joaquim Peremans (v.1 05/03/2018)
+    implementation:
     """
 
     for asteroid in info['asteroids']:
@@ -229,14 +238,15 @@ def add_portals_to_board(board, info):
     """
     Add the portals to the board.
 
-    Version
-    -------
-    specification: Joaquim Peremans (v.1 05/03/2018)
-
     Parameters
     ----------
     board: the current game board (list)
     info: the data structure with the portals (dictionary)
+
+    Version
+    -------
+    specification: Joaquim Peremans (v.1 05/03/2018)
+    implementation:
     """
 
     for portal in info['portals']:
@@ -258,19 +268,16 @@ def buy_ships(orders, players, ships_ingame, ships_type, info):
 
     Parameters
     ----------
-    orders:
-    players:
-    ships_ingame:
-    ships_type:
-    info:
-
-    Returns
-    -------
-    None
+    orders: the buy orders of the round (list)
+    players: the information of the players (dictionary)
+    ships_ingame: the information of the ships on the board (dictionary)
+    ships_type: the features of the ships (dictionary)
+    info: the data structure with the portals and the asteroids (dictionary)
 
     Version
     -------
     specification: Joaquim Peremans (v.1 05/03/2018)
+    implementation:
     """
 
     for order in orders:
@@ -304,16 +311,13 @@ def move_ship(orders, ships_ingame):
 
     Parameters
     ----------
-    orders:
-    ships_ingame:
-
-    Returns
-    -------
-    None
+    orders: the move orders of the round (list)
+    ships_ingame: the information of the ships on the board (dictionary)
 
     Version
     -------
     specification: Joaquim Peremans (v.1 05/03/2018)
+    implementation:
     """
 
     for order in orders:
@@ -330,18 +334,19 @@ def attack_ship(orders, info, ships_ingame, ships_type):
 
     Parameters
     ----------
-    orders:
-    info:
-    ships_ingame:
-    ships_type:
+    orders: the attack orders of the round (list)
+    info: the data structure with the portals and the asteroids (dictionary)
+    ships_ingame: the information of the ships on the board (dictionary)
+    ships_type: the features of the ships (dictionary)
 
     Returns
     -------
-    damage: if there was any damage done
+    damage: if there was any damage done (bool)
 
     Version
     -------
     specification: Joaquim Peremans (v.1 05/03/2018)
+    implementation:
     """
 
     for order in orders:
@@ -375,15 +380,16 @@ def collect_ores(info, ships_ingame, players, ships_type):
     """
     Collect the ores from the asteroids locked by a ship and unload the ores in the portal if a ship is locked
 
-    Version
-    -------
-    specification: Thomas Blanchy (v.2 09/03/2018)
-
     Parameters
     ----------
     info: the information of the game (dictionary)
-    ships_ingame:
-    players:
+    ships_ingame: the information of the ships on the board (dictionary)
+    players: the information of the players (dictionary)
+
+    Version
+    -------
+    specification: Thomas Blanchy (v.2 09/03/2018)
+    implementation:
     """
 
     # Collect ores from asteroids
@@ -467,16 +473,13 @@ def lock_ship(orders, info):
 
     Parameters
     ----------
-    orders:
+    orders: the lock orders of the round (list)
     info: all the informatiin of the game (dictionary)
-
-    Returns
-    -------
-    None
 
     Version
     -------
     specification: Thomas Blanchy (v.2 09/03/2018)
+    implementation:
     """
 
     for order in orders:
@@ -490,14 +493,15 @@ def unlock_ship(orders, info):
     """
     Unlock a ship if it is locked to an asteroid or a portal.
 
+    Parameters
+    ----------
+    orders: the unlock orders of the round (list)
+    info: all the informatiin of the game (dictionary)
+
     Version
     -------
     specification: Thomas Blanchy (v.2 09/03/2018)
-
-    Parameters
-    ----------
-    orders:
-    info: all the informatiin of the game (dictionary)
+    implementation:
     """
 
     for order in orders:
@@ -516,10 +520,6 @@ def load_file(config_name):
     """
     Get all the information in the game file.
 
-    Version
-    -------
-    specification: Cyril Weber (v.1 03/03/2018)
-
     Parameters
     ----------
     config_name: the name of the config file (str)
@@ -527,6 +527,11 @@ def load_file(config_name):
     Returns
     -------
     info: the information of the game file (list)
+
+    Version
+    -------
+    specification: Cyril Weber (v.1 03/03/2018)
+    implementation:
     """
 
     fh = open(config_name, 'r')
@@ -540,10 +545,6 @@ def load_size(file_info):
     """
     Get the size of the board.
 
-    Version
-    -------
-    specification: Cyril Weber (v.1 03/03/2018)
-
     Parameters
     ----------
     file_info: the information of the game file (list)
@@ -551,6 +552,11 @@ def load_size(file_info):
     Returns
     -------
     size: the size of the game board (list)
+
+    Version
+    -------
+    specification: Cyril Weber (v.1 03/03/2018)
+    implementation:
     """
 
     coords = file_info[1].split(' ')
@@ -562,10 +568,6 @@ def load_portals(file_info):
     """
     Get the portals of the game.
 
-    Version
-    -------
-    specification: Cyril Weber (v.1 03/03/2018)
-
     Parameters
     ----------
     file_info: the information of the game file (list)
@@ -573,6 +575,11 @@ def load_portals(file_info):
     Returns
     -------
     portals: the position of each portals (list)
+
+    Version
+    -------
+    specification: Cyril Weber (v.1 03/03/2018)
+    implementation:
     """
 
     portals = file_info[file_info.index('portals:') + 1:file_info.index('asteroids:')]
@@ -592,10 +599,6 @@ def load_asteroids(file_info):
     """
     Get all the asteroids in the game.
 
-    Version
-    -------
-    specification: Cyril Weber (v.1 03/03/2018)
-
     Parameters
     ----------
     file_info: the information of the game file (list)
@@ -603,6 +606,11 @@ def load_asteroids(file_info):
     Returns
     -------
     asteroids: all the asteroids (list)
+
+    Version
+    -------
+    specification: Cyril Weber (v.1 03/03/2018)
+    implementation:
     """
 
     asteroids = file_info[file_info.index('asteroids:') + 1:]
@@ -628,10 +636,6 @@ def interpret_orders(new_orders, orders, player_name, ships_type, players, ships
     """
     Get all the orders written by a player and translate them.
 
-    Version
-    -------
-    specification: Thomas Blanchy (v.1 03/03/2018)
-
     Parameters
     ----------
     new_orders: the orders to make this round (dictionary)
@@ -641,6 +645,11 @@ def interpret_orders(new_orders, orders, player_name, ships_type, players, ships
     players: the information of the players (dictionary)
     ships_ingame: the ships currently on the board (dictionary)
     info: all the information of the game (dictionary)
+
+    Version
+    -------
+    specification: Thomas Blanchy (v.1 03/03/2018)
+    implementation:
     """
 
     all_orders = orders.split(' ')
@@ -680,10 +689,6 @@ def new_move_order(order, player_name, players, ships_ingame, info):
     """
     Insert a new move order.
 
-    Version
-    -------
-    specification: Thomas Blanchy (v.2 01/04/2018)
-
     Parameters
     ----------
     order: the move order (str)
@@ -691,6 +696,15 @@ def new_move_order(order, player_name, players, ships_ingame, info):
     players: the information of the players (dictionary)
     ships_ingame: the ships currently on the board (dictionary)
     info: all the information of the game (dictionary)
+
+    Returns
+    -------
+    move_order: the new move order (dictionary)
+
+    Version
+    -------
+    specification: Thomas Blanchy (v.2 01/04/2018)
+    implementation:
     """
 
     # Extract the new position from the order
@@ -733,25 +747,29 @@ def new_attack_order(order, player_name, players, ships_ingame, ships_type, info
     """
     Insert a new attack order.
 
-    Version
-    -------
-    specification: Thomas Blanchy (v.1 03/03/2018)
-
     Parameters
     ----------
     order: the attack order (str)
     player_name: the name of the player who did the order (str)
-    players:
-    ships_ingame:
-    ships_type:
-    info:
+    players: the information of the players (dictionary)
+    ships_ingame: the information of the ships on the board (dictionary)
+    ships_type: the features of the ships (dictionary)
+    info: the data structure with the portails and the asteroids (dictionary)
+
+    Returns
+    -------
+    attack_order: the new attack order (dictionary)
+
+    Version
+    -------
+    specification: Thomas Blanchy (v.1 03/03/2018)
+    implementation:
     """
 
     # Check if target pos is in range
     # Remove life to every ship on the pos
     # Handle events if life <= 0
     #   Remove ship
-    #   Save the kill?
 
     # order is type : ship_name:*r-c
     ship_name = order.split(':')[0]
@@ -789,10 +807,6 @@ def new_buy_order(order, player_name, ships_type, ships_ingame, players):
     """
     Insert a new buy order.
 
-    Version
-    -------
-    specification: Thomas Blanchy (v.1 03/03/2018)
-
     Parameters
     ----------
     order: the buy order (str)
@@ -800,6 +814,15 @@ def new_buy_order(order, player_name, ships_type, ships_ingame, players):
     ships_type: the types of the ships (dictionary)
     ships_ingame: the ships currently on the board (dictionary)
     players: the information of the players (dictionary)
+
+    Returns
+    -------
+    buy_order: the new buy order (dictionary)
+
+    Version
+    -------
+    specification: Thomas Blanchy (v.1 03/03/2018)
+    implementation:
     """
 
     ship_name = order.split(':')[0]
@@ -833,17 +856,18 @@ def new_lock_order(order, player_name, players, ships_ingame, info):
     ----------
     order: the order containing the name of the ship to lock (str)
     player_name: the name of the player who did the order (str)
-    players:
-    ships_ingame:
-    info:
+    players: the information of the players (dictionary)
+    ships_ingame: the information of the ships on the board (dictionary)
+    info: the data structure with the asteroids and the portals (dictionary)
 
     Returns
     -------
-    order: the new order (dictionary)
+    order: the new lock order (dictionary)
 
     Version
     -------
     specification: Thomas Blanchy (v.1 03/03/2018)
+    implementation:
     """
 
     ship_name = order.split(':')[0]
@@ -895,9 +919,9 @@ def new_unlock_order(order, player_name, players, ships_ingame, info):
     ----------
     order: the order containing the name of the ship to unlock (str)
     player_name: the name of the player who did the order (str)
-    players:
-    ships_ingame:
-    info:
+    players: the information of the players (dictionary)
+    ships_ingame: the information of the ships on the board (dictionary)
+    info: the data structure of the asteroids and the portals (dictionary)
 
     Returns
     -------
@@ -906,6 +930,7 @@ def new_unlock_order(order, player_name, players, ships_ingame, info):
     Version
     -------
     specification: Thomas Blanchy (v.1 03/03/2018)
+    implementation:
     """
 
     ship_name = order.split(':')[0]
@@ -954,14 +979,14 @@ def new_unlock_order(order, player_name, players, ships_ingame, info):
 #
 
 
-def check_end_game(info, players, damage):
+def check_end_game(info, damage):
     """
     Check if a portal is destroyed or no damage has been done for 20 turns.
 
     Parameters
     ----------
     info: all the information of the game (dictionary)
-    players:
+    damage: if there was any damage on the round (bool)
 
     Returns
     -------
@@ -970,6 +995,7 @@ def check_end_game(info, players, damage):
     Version
     -------
     specification: Cyril Weber, Thomas Blanchy (v.2 01/04/2018)
+    implementation:
     """
 
     if damage:
@@ -986,9 +1012,15 @@ def end_game(players, info):
     """
     Make the steps to end the game, write the winner.
 
+    Parameters
+    ----------
+    players: the information of the players (dictionary)
+    info: the data structure with the portals and the asteroids (dictionary)
+
     Version
     -------
     specification: Cyril Weber (v.1 04/03/2018)
+    implementation:
 
     """
 
@@ -999,13 +1031,19 @@ def get_winner(players, info):
     """
     Returns the winner's name of the game according to the damage and the ore.
 
-    Version
-    -------
-    specification: Cyril Weber (v.1 04/03/2018)
+    Parameters
+    ----------
+    players: the information of the players (dictionary)
+    info: the data structure with the portals and the asteroids (dictionary)
 
     Returns
     -------
     winner: the name of the winner (str)
+
+    Version
+    -------
+    specification: Cyril Weber (v.1 04/03/2018)
+    implementation:
     """
 
     portals_life = []
@@ -1068,6 +1106,9 @@ def ia(players, ships_ingame, ships_type):
 
     Parameters
     ----------
+    players: the information of the players (dictionary)
+    ships_ingame: the information of the ships on the board (dictionary)
+    ships_type: the features of the ships (dictionary)
 
     Returns
     -------
@@ -1075,6 +1116,8 @@ def ia(players, ships_ingame, ships_type):
 
     Version
     -------
+    specification:
+    implementation:
     """
     # TODO: random lock, unlock, attack
     orders = []
@@ -1113,9 +1156,9 @@ def get_portal_from_player(player_name, players, info):
 
     Parameters
     ----------
-    player_name:
-    players:
-    info:
+    player_name: the name of the player (str)
+    players: the information of the players (dictionary)
+    info: the data structure with the portals and the asteroids (dictionary)
 
     Returns
     -------
@@ -1123,6 +1166,8 @@ def get_portal_from_player(player_name, players, info):
 
     Version
     -------
+    specification:
+    implementation:
     """
 
     # First portal goes to first player ...
@@ -1142,6 +1187,11 @@ def get_ship_radius(ship_type):
     Returns
     -------
     radius: the radius of the ship (int)
+
+    Version
+    -------
+    specification:
+    implementation:
     """
 
     types = {
@@ -1173,6 +1223,7 @@ def check_range(attacker, target_pos, ships_ingame, ships_type):
     Version
     -------
     specification: Thomas Blanchy (v.2 01/04/2018)
+    implementation:
     """
 
     attacker_ship = ships_ingame[attacker]
