@@ -90,6 +90,15 @@ def start_game(config_name, player_types):
 
     while check_end_game(game_board, no_damage_in_the_round):
         time.sleep(1)
+
+        # ### DEBUG ###
+        print(game_board)
+        print('-----')
+        print(players)
+        print('-----')
+        print(ships_ingame)
+        print('-----')
+
         new_orders = {
             'buy_orders': [],
             'lock_orders': [],
@@ -103,15 +112,19 @@ def start_game(config_name, player_types):
                 order = input('Order of %s: ' % player)
                 interpret_orders(new_orders, order, player, ships_type, players, ships_ingame, game_board)
             else:
-                interpret_orders(new_orders, ia(players, ships_ingame, ships_type, game_board),
-                                 player, ships_type, players, ships_ingame, game_board)
+                order = ia(player, players, ships_ingame, ships_type, game_board)
+                print(order)
+                interpret_orders(new_orders, order, player, ships_type, players, ships_ingame, game_board)
 
         # Buying Phase
         buy_ships(new_orders['buy_orders'], players, ships_ingame, ships_type, game_board)
 
         # Lock/Unlock Phase
-        lock_ship(new_orders['lock_orders'], info)
-        unlock_ship(new_orders['unlock_orders'], info)
+        lock_ship(new_orders['lock_orders'], game_board, ships_ingame, players)
+        unlock_ship(new_orders['unlock_orders'], game_board, ships_ingame, players)
+
+        for asteroid in game_board['asteroids']:
+            print(asteroid['ships_locked'])
 
         # Move Phase
         move_ship(new_orders['move_orders'], ships_ingame)
@@ -125,7 +138,7 @@ def start_game(config_name, player_types):
         # Show board
         draw_board(game_board, ships_ingame, ships_structure, players)
 
-    end_game(players, info)
+    end_game(players, game_board)
     print('Game Over!')
 
 
@@ -413,7 +426,7 @@ def collect_ores(info, ships_ingame, players, ships_type):
 
         # The part where we compute the max number of ores to give to a ship
         for ship in ships_locked:
-            capacity = ships_type[ships_ingame[ship]['tonnage']] - ships_ingame[ship]['ore']
+            capacity = ships_type[ships_ingame[ship]['type']]['tonnage'] - ships_ingame[ship]['ore']
             # If the rate is greater than the capacity of the ship ...
             if ores_rate > capacity:
                 # ... we can only give the capacity of the ship
@@ -432,38 +445,48 @@ def collect_ores(info, ships_ingame, players, ships_type):
             for ship in ships_locked:
                 # ... we can give to each ship the max they can have
                 ships_ingame[ship]['ore'] += max_ores[ship]
+                asteroid['ore'] -= max_ores[ship]
+                print('Add %f to %s' % (max_ores[ship], ship))
         # The max number is greater than what's left in the asteroid -> we have to split
         else:
             new_ores_left = ores_left  # We save ores_left to modify it
             new_nb_ships = nb_ships  # We save nb_ships to modify it
 
             # While there are ores left in the asteroid
-            while new_ores_left > 0:
-
+            while new_ores_left > 0.1:
+                print(max_ores)
+                print('||| %f' % new_ores_left)
                 # We compute the minimum of the ores the ships can collect
                 current_min = -1
                 for o in max_ores:
                     if max_ores[o] < current_min or current_min == -1:
                         current_min = max_ores[o]
+                        print('-=- %f' % current_min)
 
                 # We multiply the min by the number of ships to see if we can give that min to all the ships
                 if current_min * nb_ships <= ores_left:
-                    for ship in ships_locked:
+                    for ship in max_ores:
                         ships_ingame[ship]['ore'] += current_min  # We give the min to each ships
+                        asteroid['ore'] -= current_min
+                        print('Add %f to %s' % (current_min, ship))
                         new_ores_left -= current_min  # We subtract the min to see what's left to the asteroid
                         max_ores[ship] -= current_min  # We subtract the min to see what the ship can recolt
                 # If the min is greater to what the ships can recolt
                 else:
-                    for ship in ships_locked:
+                    for ship in max_ores:
                         ships_ingame[ship]['ore'] += (ores_left / new_nb_ships)
+                        asteroid['ore'] -= (ores_left / new_nb_ships)
+                        print('Add %f to %s' % ((ores_left / new_nb_ships), ship))
                         new_ores_left -= (ores_left / new_nb_ships)
                         max_ores[ship] -= current_min
 
                 # We remove the full ships
+                new_max_ores = {}
                 for o in max_ores:
-                    if max_ores[o] == 0:
-                        del max_ores[o]
-                        new_nb_ships -= 1
+                    if max_ores[o] > 0:
+                        new_max_ores[o] = max_ores[o]
+                new_nb_ships -= (len(max_ores.keys()) - len(new_max_ores.keys()))
+                max_ores = new_max_ores
 
     # Load ores to portals
     for portal in info['portals']:
@@ -471,12 +494,13 @@ def collect_ores(info, ships_ingame, players, ships_type):
         for ship in ships_locked:
             if ships_ingame[ship]['ore'] > 0:
                 for player in players:
-                    if ship in player['ships']:
-                        player['ore'] = player['ore'] + ships_ingame[ship]['ore']
-                        player['total_recolted'] += ships_ingame[ship]['ore']
+                    if ship in players[player]['ships']:
+                        players[player]['ore'] += ships_ingame[ship]['ore']
+                        players[player]['total_recolted'] += ships_ingame[ship]['ore']
+                        ships_ingame[ship]['ore'] = 0
 
 
-def lock_ship(orders, info):
+def lock_ship(orders, info, ships_ingame, players):
     """
     Lock a ship to a certain position, asteroid or portal.
 
@@ -484,21 +508,32 @@ def lock_ship(orders, info):
     ----------
     orders: the lock orders of the round (list)
     info: all the informatiin of the game (dictionary)
+    ships_ingame: the information of the ships on the board (dictionary)
+    players: the information of the players (dictionary)
 
     Version
     -------
-    specification: Thomas Blanchy (v.2 09/03/2018)
+    specification: Thomas Blanchy (v.3 16/04/2018)
     implementation:
     """
 
     for order in orders:
         if order:
             ship_name = order['order'].split(':')[0]
-            if ship_name not in info['asteroids']['ships_locked']:
-                info['asteroids']['ships_locked'].append(ship_name)
+            asteroid = get_asteroid_from_position(ships_ingame[ship_name]['position'], info)
+
+            if asteroid:
+                if ship_name not in asteroid['ships_locked']:
+                    asteroid['ships_locked'].append(ship_name)
+            else:
+                owner = get_player_from_ship(ship_name, players)
+                portal = get_portal_from_player(owner, players, info)
+                if ships_ingame[ship_name]['position'] == portal['position']:
+                    if ship_name not in portal['ships_locked']:
+                        portal['ships_locked'].append(ship_name)
 
 
-def unlock_ship(orders, info):
+def unlock_ship(orders, info, ships_ingame, players):
     """
     Unlock a ship if it is locked to an asteroid or a portal.
 
@@ -506,6 +541,8 @@ def unlock_ship(orders, info):
     ----------
     orders: the unlock orders of the round (list)
     info: all the informatiin of the game (dictionary)
+    ships_ingame: the information of the ships on the board (dictionary)
+    players: the information of the players (dictionary)
 
     Version
     -------
@@ -516,8 +553,16 @@ def unlock_ship(orders, info):
     for order in orders:
         if order:
             ship_name = order['order'].split(':')[0]
-            if ship_name in info['asteroids']['ships_locked']:
-                info['asteroids']['ships_locked'].remove(ship_name)
+            asteroid = get_asteroid_from_position(ships_ingame[ship_name]['position'], info)
+            if asteroid:
+                if ship_name in asteroid['ships_locked']:
+                    asteroid['ships_locked'].remove(ship_name)
+            else:
+                owner = get_player_from_ship(ship_name, players)
+                portal = get_portal_from_player(owner, players, info)
+                if ships_ingame[ship_name]['position'] == portal['position']:
+                    if ship_name in portal['ships_locked']:
+                        portal['ships_locked'].remove(ship_name)
 
 
 #
@@ -661,37 +706,38 @@ def interpret_orders(new_orders, orders, player_name, ships_type, players, ships
     implementation:
     """
 
-    all_orders = orders[:-1].split(' ')
-    for order in all_orders:
-        order_name = order.split(':')[1]
+    if len(orders) > 0:
+        all_orders = orders.split(' ')
+        for order in all_orders:
+            order_name = order.split(':')[1]
 
-        if order_name.startswith('@'):
-            move_order = new_move_order(order, player_name, players, ships_ingame, info)
+            if order_name.startswith('@'):
+                move_order = new_move_order(order, player_name, players, ships_ingame, info)
 
-            if move_order:
-                new_orders['move_orders'].append(move_order)
-        elif order_name.startswith('*'):
-            attack_order = new_attack_order(order, player_name, players, ships_ingame, ships_type, info)
+                if move_order:
+                    new_orders['move_orders'].append(move_order)
+            elif order_name.startswith('*'):
+                attack_order = new_attack_order(order, player_name, players, ships_ingame, ships_type, info)
 
-            if attack_order:
-                new_orders['attack_orders'].append(attack_order)
-        elif order_name.startswith('release'):
-            release_order = new_unlock_order(order, player_name, players, ships_ingame, info)
+                if attack_order:
+                    new_orders['attack_orders'].append(attack_order)
+            elif order_name.startswith('release'):
+                release_order = new_unlock_order(order, player_name, players, ships_ingame, info)
 
-            if release_order:
-                new_orders['unlock_orders'].append(release_order)
-        elif order_name.startswith('lock'):
-            lock_order = new_lock_order(order, player_name, players, ships_ingame, info)
+                if release_order:
+                    new_orders['unlock_orders'].append(release_order)
+            elif order_name.startswith('lock'):
+                lock_order = new_lock_order(order, player_name, players, ships_ingame, info)
 
-            if lock_order:
-                new_orders['lock_orders'].append(lock_order)
-        elif (order_name[0].upper() + order_name[1:]) in ships_type.keys():
-            buy_order = new_buy_order(order, player_name, ships_type, ships_ingame, players)
+                if lock_order:
+                    new_orders['lock_orders'].append(lock_order)
+            elif (order_name[0].upper() + order_name[1:]) in ships_type.keys():
+                buy_order = new_buy_order(order, player_name, ships_type, ships_ingame, players)
 
-            if buy_order:
-                new_orders['buy_orders'].append(buy_order)
-        else:
-            print('Order not recognized')
+                if buy_order:
+                    new_orders['buy_orders'].append(buy_order)
+            else:
+                print('Order not recognized')
 
 
 def new_move_order(order, player_name, players, ships_ingame, info):
@@ -732,7 +778,7 @@ def new_move_order(order, player_name, players, ships_ingame, info):
     # Check if the new pos next to the old one
     current_pos = ships_ingame[ship_name]['position']
     if abs(new_position[0] - current_pos[0]) > 1 or abs(new_position[1] - current_pos[1]) > 1:
-        # print('%s - Movement too far (>1)' % order)
+        print('%s - Movement too far (>1)' % order)
         return False
 
     # Check if the new pos is in the board
@@ -786,22 +832,22 @@ def new_attack_order(order, player_name, players, ships_ingame, ships_type, info
 
     # Check in board
     if target_pos[0] < 1 or target_pos[1] < 1 or target_pos[0] > info['size'][0] or target_pos[1] > info['size'][1]:
-        # print('You can not attack out of the board.')
+        print('You can not attack out of the board.')
         return False
 
     # Check property
     if ship_name not in players[player_name]['ships']:
-        # print('You do not own that ship.')
+        print('You do not own that ship.')
         return False
 
     # Check Range
     if not check_range(player_name, [target_pos[0], target_pos[1]], ships_ingame, ships_type):
-        # print('The target is too far to be reached.')
+        print('The target is too far to be reached.')
         return False
 
     # Check ship type
     if ships_ingame[ship_name]['type'] not in ['Scout, Warship']:
-        # print('You can not attack with that ship.')
+        print('You can not attack with that ship.')
         return False
 
     new_order = {
@@ -842,11 +888,11 @@ def new_buy_order(order, player_name, ships_type, ships_ingame, players):
     money_in_bank = players[player_name]['ore']
 
     if money_in_bank < price:
-        # print('You do not have enough money to buy that ship.')
+        print('You do not have enough money to buy that ship.')
         return False
 
     if ship_name in ships_ingame.keys():
-        # print('That ship name is already used.')
+        print('That ship name is already used.')
         return False
 
     new_order = {
@@ -883,20 +929,20 @@ def new_lock_order(order, player_name, players, ships_ingame, info):
 
     # Check if own the ship
     if ship_name not in players[player_name]['ships']:
-        # print('You do not own that ship.')
+        print('You do not own that ship.')
         return False
 
     ship_pos = ships_ingame[ship_name]['position']
 
     # Check if it is an excavator
-    if ships_ingame[ship_name]['type'] in ['Excavator-S', 'Excavator-M', 'Excavator-L']:
-        # print('You can not lock that ship.')
+    if ships_ingame[ship_name]['type'] not in ['Excavator-S', 'Excavator-M', 'Excavator-L']:
+        print('You can not lock that ship.')
         return False
 
     for asteroid in info['asteroids']:
         if asteroid['position'] == ship_pos:
             if ship_name in asteroid['ships_locked']:
-                # print('That ship is already locked')
+                print('That ship is already locked')
                 return False
 
             new_order = {
@@ -909,7 +955,7 @@ def new_lock_order(order, player_name, players, ships_ingame, info):
     for portal in info['portals']:
         if portal['position'] == ship_pos:
             if ship_name in portal['ships_locked']:
-                # print('That ship is already locked.')
+                print('That ship is already locked.')
                 return False
 
             new_order = {
@@ -946,20 +992,20 @@ def new_unlock_order(order, player_name, players, ships_ingame, info):
 
     # Check if own the ship
     if ship_name not in players[player_name]['ships']:
-        # print('You do not own that ship.')
+        print('You do not own that ship.')
         return False
 
     ship_pos = ships_ingame[ship_name]['position']
 
     # Check if it is an excavator
-    if ships_ingame[ship_name]['type'] in ['Excavator-S', 'Excavator-M', 'Excavator-L']:
-        # print('You can not unlock that ship.')
+    if ships_ingame[ship_name]['type'] not  in ['Excavator-S', 'Excavator-M', 'Excavator-L']:
+        print('You can not unlock that ship.')
         return False
 
     for asteroid in info['asteroids']:
         if asteroid['position'] == ship_pos:
             if ship_name not in asteroid['ships_locked']:
-                # print('That ship is not locked')
+                print('That ship is not locked')
                 return False
 
             new_order = {
@@ -972,7 +1018,7 @@ def new_unlock_order(order, player_name, players, ships_ingame, info):
     for portal in info['portals']:
         if portal['position'] == ship_pos:
             if ship_name not in portal['ships_locked']:
-                # print('That ship is not locked.')
+                print('That ship is not locked.')
                 return False
 
             new_order = {
@@ -1109,12 +1155,13 @@ def get_winner(players, info):
 #   IA Functions
 #
 
-def ia(players, ships_ingame, ships_type, info):
+def ia(ia_name, players, ships_ingame, ships_type, info):
     """
     Basic action of the ia
 
     Parameters
     ----------
+    ia_name: the name of the ia (str)
     players: the information of the players (dictionary)
     ships_ingame: the information of the ships on the board (dictionary)
     ships_type: the features of the ships (dictionary)
@@ -1132,65 +1179,110 @@ def ia(players, ships_ingame, ships_type, info):
     # TODO: attack
     orders = []
 
-    for player in players:
-        if players[player]['type'] is 'ia':
-            # Random Move
-            for ship_name in players[player]['ships']:
-                ship = ships_ingame[ship_name]
-                ship_type = ship['type']
-                current_pos = ship['position']
+    if players[ia_name]['type'] is 'ia':
+        # Random Move
+        for ship_name in players[ia_name]['ships']:
+            ship = ships_ingame[ship_name]
+            ship_type = ship['type']
+            current_pos = ship['position']
 
+            if not is_locked(ship_name, info):
                 if ship_type in ['Excavator-S', 'Excavator-M', 'Excavator-L']:
-                    closest_asteroid = get_closest_asteroid(info, current_pos)
+                    stock = ships_type[ship_type]['tonnage'] - ship['ore']
 
-                    # Compute X move
-                    x_move = 0
-                    if closest_asteroid['position'][0] > current_pos[0]:
-                        x_move = 1
-                    elif closest_asteroid['position'][0] < current_pos[0]:
-                        x_move = -1
+                    if stock > 0:
+                        closest_asteroid = get_closest_asteroid(info, current_pos)
 
-                    # Compute Y move
-                    y_move = 0
-                    if closest_asteroid['position'][1] > current_pos[1]:
-                        y_move = 1
-                    elif closest_asteroid['position'][1] < current_pos[1]:
-                        y_move = -1
+                        # Compute X move
+                        x_move = 0
+                        if closest_asteroid['position'][0] > current_pos[0]:
+                            x_move = 1
+                        elif closest_asteroid['position'][0] < current_pos[0]:
+                            x_move = -1
 
-                    new_pos_r = current_pos[0] + x_move
-                    new_pos_c = current_pos[1] + y_move
+                        # Compute Y move
+                        y_move = 0
+                        if closest_asteroid['position'][1] > current_pos[1]:
+                            y_move = 1
+                        elif closest_asteroid['position'][1] < current_pos[1]:
+                            y_move = -1
+
+                        new_pos_r = current_pos[0] + x_move
+                        new_pos_c = current_pos[1] + y_move
+                    else:
+                        owner_name = get_player_from_ship(ship_name, players)
+                        portal_pos = get_portal_from_player(owner_name, players, info)
+
+                        # Compute X move
+                        x_move = 0
+                        if portal_pos['position'][0] > current_pos[0]:
+                            x_move = 1
+                        elif portal_pos['position'][0] < current_pos[0]:
+                            x_move = -1
+
+                        # Compute Y move
+                        y_move = 0
+                        if portal_pos['position'][1] > current_pos[1]:
+                            y_move = 1
+                        elif portal_pos['position'][1] < current_pos[1]:
+                            y_move = -1
+
+                        new_pos_r = current_pos[0] + x_move
+                        new_pos_c = current_pos[1] + y_move
                 else:
                     new_pos_r = current_pos[0] + random.randint(-1, 1)
                     new_pos_c = current_pos[1] + random.randint(-1, 1)
                 orders.append('%s:@%d-%d' % (ship_name, new_pos_r, new_pos_c))
 
-            # Random Buy
-            money = players[player]['ore']
-            for ship_type in ships_type:
-                if money >= ships_type[ship_type]['cost']:
-                    chance = random.random()
-                    if chance > 0.5:
-                        money -= ships_type[ship_type]['cost']
-                        ship_name = 'ia_ship#%d' % random.randint(0, 999)
-                        orders.append('%s:%s' % (ship_name, ship_type))
+        # Random Buy
+        money = players[ia_name]['ore']
+        for ship_type in ships_type:
+            if money >= ships_type[ship_type]['cost']:
+                chance = random.random()
+                if chance > 0.5:
+                    money -= ships_type[ship_type]['cost']
+                    ship_name = 'ia_ship#%s#%d' % (ship_type, random.randint(0, 999))
+                    orders.append('%s:%s' % (ship_name, ship_type))
 
-            # Lock
-            for asteroid in info['asteroids']:
-                for ship in ships_ingame:
-                    if ship in ['Excavator-S', 'Excavator-M', 'Excavator-L']:
-                        if asteroid['position'] == ships_ingame[ship]['position']:
+        # Lock to asteroid
+        for asteroid in info['asteroids']:
+            for ship in ships_ingame:
+                if ships_ingame[ship]['type'] in ['Excavator-S', 'Excavator-M', 'Excavator-L']:
+                    if get_player_from_ship(ship, players) == ia_name:
+                        stock = ships_type[ships_ingame[ship]['type']]['tonnage'] - ships_ingame[ship]['ore']
+                        if asteroid['position'] == ships_ingame[ship]['position'] and stock > 0:
                             if ship not in asteroid['ships_locked']:
+                                print('New lock order %s' % ship)
                                 orders.append('%s:lock' % ship)
 
-            # Unlock
-            for asteroid in info['asteroids']:
-                for ship in asteroid['ships_locked']:
+        # Lock to portal
+        for portal in info['portals']:
+            for ship in ships_ingame:
+                if ships_ingame[ship]['type'] in ['Excavator-S', 'Excavator-M', 'Excavator-L']:
+                    if get_player_from_ship(ship, players) == ia_name:
+                        if portal['position'] == ships_ingame[ship]['position'] and ships_ingame[ship]['ore'] > 0:
+                            if ship not in portal['ships_locked']:
+                                orders.append('%s:lock' % ship)
+
+        # Unlock from asteroid
+        for asteroid in info['asteroids']:
+            for ship in asteroid['ships_locked']:
+                if get_player_from_ship(ship, players) == ia_name:
                     if ships_ingame[ship]['ore'] == ships_type[ships_ingame[ship]['type']]['tonnage']:
                         orders.append('%s:release' % ship)
 
-            # Attack
+        # Unlock from portal
+        for portal in info['portals']:
+            for ship in portal['ships_locked']:
+                if get_player_from_ship(ship, players) == ia_name:
+                    if ships_ingame[ship]['ore'] == 0:
+                        orders.append('%s:release' % ship)
 
-    return ' '.join(orders)
+        # Attack
+
+    final_ord = ' '.join(orders)
+    print('\'' + final_ord + '\'')
+    return final_ord
 
 
 #
@@ -1248,6 +1340,58 @@ def get_player_from_ship(ship_name, players):
             return player
 
 
+def is_locked(ship_name, info):
+    """
+    Check if a ship is locked
+
+    Parameters
+    ----------
+    ship_name: the name of the ship (str)
+    info: the data structure with the portals and the asteroids (dictionary)
+
+    Returns
+    -------
+    locked: if the ship is locked or not (bool)
+
+    Version
+    -------
+    specification:
+    implementation:
+    """
+    if ship_name in ['Excavator-S', 'Excavator-M', 'Excavator-L']:
+        for asteroid in info['asteroids']:
+            if ship_name in asteroid['ships_locked']:
+                return True
+        return False
+    else:
+        return False
+
+
+def get_asteroid_from_position(position, info):
+    """
+    Get the information of an asteroid according to its position
+
+    Parameters
+    ----------
+    position: the position of the asteroid (list)
+    info: the data structure with the portals and the asteroids (info)
+
+    Returns
+    -------
+    asteroid: the information of the asteroid (dictionary)
+
+    Version
+    -------
+    specification:
+    implementation:
+    """
+
+    for asteroid in info['asteroids']:
+        if position[0] == asteroid['position'][0] and position[1] == asteroid['position'][1]:
+            return asteroid
+    return False
+
+
 def get_ship_radius(ship_type):
     """
     Get the radius of a specific type of ship
@@ -1301,20 +1445,21 @@ def get_closest_asteroid(info, position):
     current_diff_y = -1
 
     for asteroid in info['asteroids']:
-        asteroid_pos = asteroid['position']
-        diff_x = position[0] - asteroid_pos[0]
-        diff_y = position[1] - asteroid_pos[1]
+        if asteroid['ore'] > 0.1:
+            asteroid_pos = asteroid['position']
+            diff_x = abs(position[0] - asteroid_pos[0])
+            diff_y = abs(position[1] - asteroid_pos[1])
 
-        close = False
-        if diff_x < current_diff_x or current_diff_x == -1:
-            close = True
-        if diff_y < current_diff_y or current_diff_y == -1:
-            close = True
+            close = False
+            if diff_x < current_diff_x or current_diff_x == -1:
+                close = True
+            if diff_y < current_diff_y or current_diff_y == -1:
+                close = True
 
-        if close:
-            current_closest_asteroid = asteroid
-            current_diff_x = diff_x
-            current_diff_y = diff_y
+            if close:
+                current_closest_asteroid = asteroid
+                current_diff_x = diff_x
+                current_diff_y = diff_y
 
     return current_closest_asteroid
 
