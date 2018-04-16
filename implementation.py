@@ -458,7 +458,7 @@ def collect_ores(info, ships_ingame, players, ships_type):
                 for player in players:
                     if ship in player['ships']:
                         player['ore'] = player['ore'] + ships_ingame[ship]['ore']
-                        player['total_recolted'] = player['total_recolted'] + ships_ingame[ship]['ore']
+                        player['total_recolted'] += ships_ingame[ship]['ore']
 
 
 def lock_ship(orders, info):
