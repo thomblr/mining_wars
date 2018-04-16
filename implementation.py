@@ -123,7 +123,7 @@ def start_game(config_name, player_types):
         collect_ores(game_board, ships_ingame, players, ships_type)
 
         # Show board
-        draw_board(game_board, ships_ingame, ships_structure)
+        draw_board(game_board, ships_ingame, ships_structure, players)
 
     end_game(players, info)
     print('Game Over!')
@@ -134,7 +134,7 @@ def start_game(config_name, player_types):
 #
 
 
-def draw_board(info, ships, ships_structure):
+def draw_board(info, ships, ships_structure, players):
     """
     Draw the game board and refresh every round.
 
@@ -143,6 +143,7 @@ def draw_board(info, ships, ships_structure):
     info: the information of the game (dictionary)
     ships: the ships in game (dictionary)
     ships_structure: the structure of the ships (dictionary)
+    players: the information of the players (dictionary)
 
     Version
     -------
@@ -153,7 +154,7 @@ def draw_board(info, ships, ships_structure):
     board = []
     build_empty_board(info, board)
     add_portals_to_board(board, info)
-    add_ships_to_board(board, ships, ships_structure)
+    add_ships_to_board(board, ships, ships_structure, players)
     add_asteroids_to_board(board, info)
 
     for row in board:
@@ -184,7 +185,7 @@ def build_empty_board(info, board):
         board.append(sub_list)
 
 
-def add_ships_to_board(board, ships, ships_structure):
+def add_ships_to_board(board, ships, ships_structure, players):
     """
     Add the ships in game to the board.
 
@@ -193,6 +194,7 @@ def add_ships_to_board(board, ships, ships_structure):
     board: the current game board (list)
     ships: the ships in game (dictionary)
     ships_structure: the structure of the ships (dictionary)
+    players: the information of the players (dictionary)
 
     Version
     -------
@@ -200,7 +202,10 @@ def add_ships_to_board(board, ships, ships_structure):
     implementation:
     """
 
+    ship_colors = [1, 21]
     for ship in ships:
+        owner_index = list(players.keys()).index(get_player_from_ship(ship, players))
+        color = colored.fg(ship_colors[owner_index])
         ship_x = ships[ship]['position'][0]
         ship_y = ships[ship]['position'][1]
         ship_type = ships[ship]['type']
@@ -208,7 +213,7 @@ def add_ships_to_board(board, ships, ships_structure):
         structure = ships_structure[ship_type]
 
         for pos in structure:
-            board[ship_x + int(pos[0]) - 1][ship_y + int(pos[1]) - 1] = '\u25A0'
+            board[ship_x + int(pos[0]) - 1][ship_y + int(pos[1]) - 1] = color + '\u25A0' + colored.attr('reset')
 
 
 def add_asteroids_to_board(board, info):
@@ -230,8 +235,8 @@ def add_asteroids_to_board(board, info):
         pos_x = asteroid['position'][0]
         pos_y = asteroid['position'][1]
         ore = asteroid['ore']
-        color = colored.fg('red') if ore > 0 else colored.fg('white')
-        board[int(pos_x) - 1][int(pos_y) - 1] = color + '\u2739' + colored.attr('reset')
+        color = colored.fg(2) if ore > 0 else colored.fg(15)
+        board[int(pos_x) - 1][int(pos_y) - 1] = color + '\u25D8' + colored.attr('reset')
 
 
 def add_portals_to_board(board, info):
@@ -249,12 +254,15 @@ def add_portals_to_board(board, info):
     implementation:
     """
 
+    portal_colors = [174, 45]
     for portal in info['portals']:
+        portal_index = info['portals'].index(portal)
+        color = colored.fg(portal_colors[portal_index])
         pos_x = portal['position'][0]
         pos_y = portal['position'][1]
         for i in range(-2, 3):
             for j in range(-2, 3):
-                board[int(pos_x) + i - 1][int(pos_y) + j - 1] = '\u25CD'
+                board[int(pos_x) + i - 1][int(pos_y) + j - 1] = color + '\u25CC' + colored.attr('reset')
 
 
 #
@@ -1149,7 +1157,6 @@ def ia(players, ships_ingame, ships_type):
 #   Help functions
 #
 
-
 def get_portal_from_player(player_name, players, info):
     """
     Returns the portal of the player
@@ -1174,6 +1181,31 @@ def get_portal_from_player(player_name, players, info):
     player_index = list(players.keys()).index(player_name)
     player_portal = info['portals'][player_index]
     return player_portal
+
+
+def get_player_from_ship(ship_name, players):
+    """
+    Returns the name of the owner of a ship
+
+    Parameters
+    ----------
+    ship_name: the name of the ship (str)
+    players: the information of the players (dictionary)
+
+    Returns
+    -------
+    player: the name of the owner of the ship (str)
+
+    Version
+    -------
+    specification:
+    implementation:
+
+    """
+
+    for player in players:
+        if ship_name in players[player]['ships']:
+            return player
 
 
 def get_ship_radius(ship_type):
