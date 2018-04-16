@@ -88,7 +88,7 @@ def start_game(config_name, player_types):
 
     no_damage_in_the_round = True
 
-    while check_end_game(game_board, players, no_damage_in_the_round):
+    while check_end_game(game_board, no_damage_in_the_round):
         time.sleep(1)
         new_orders = {
             'buy_orders': [],
