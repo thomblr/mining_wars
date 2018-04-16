@@ -103,7 +103,7 @@ def start_game(config_name, player_types):
                 order = input('Order of %s: ' % player)
                 interpret_orders(new_orders, order, player, ships_type, players, ships_ingame, game_board)
             else:
-                interpret_orders(new_orders, ia(players, ships_ingame, ships_type),
+                interpret_orders(new_orders, ia(players, ships_ingame, ships_type, game_board),
                                  player, ships_type, players, ships_ingame, game_board)
 
         # Buying Phase
@@ -393,6 +393,7 @@ def collect_ores(info, ships_ingame, players, ships_type):
     info: the information of the game (dictionary)
     ships_ingame: the information of the ships on the board (dictionary)
     players: the information of the players (dictionary)
+    ships_type: the features of the ships (dictionary)
 
     Version
     -------
@@ -1108,7 +1109,7 @@ def get_winner(players, info):
 #   IA Functions
 #
 
-def ia(players, ships_ingame, ships_type):
+def ia(players, ships_ingame, ships_type, info):
     """
     Basic action of the ia
 
@@ -1117,6 +1118,7 @@ def ia(players, ships_ingame, ships_type):
     players: the information of the players (dictionary)
     ships_ingame: the information of the ships on the board (dictionary)
     ships_type: the features of the ships (dictionary)
+    info: the data structure with the portals and the asteroids (dictionary)
 
     Returns
     -------
@@ -1135,9 +1137,31 @@ def ia(players, ships_ingame, ships_type):
             # Random Move
             for ship_name in players[player]['ships']:
                 ship = ships_ingame[ship_name]
+                ship_type = ship['type']
                 current_pos = ship['position']
-                new_pos_r = current_pos[0] + random.randint(-1, 1)
-                new_pos_c = current_pos[1] + random.randint(-1, 1)
+
+                if ship_type in ['Excavator-S', 'Excavator-M', 'Excavator-L']:
+                    closest_asteroid = get_closest_asteroid(info, current_pos)
+
+                    # Compute X move
+                    x_move = 0
+                    if closest_asteroid['position'][0] > current_pos[0]:
+                        x_move = 1
+                    elif closest_asteroid['position'][0] < current_pos[0]:
+                        x_move = -1
+
+                    # Compute Y move
+                    y_move = 0
+                    if closest_asteroid['position'][1] > current_pos[1]:
+                        y_move = 1
+                    elif closest_asteroid['position'][1] < current_pos[1]:
+                        y_move = -1
+
+                    new_pos_r = current_pos[0] + x_move
+                    new_pos_c = current_pos[1] + y_move
+                else:
+                    new_pos_r = current_pos[0] + random.randint(-1, 1)
+                    new_pos_c = current_pos[1] + random.randint(-1, 1)
                 orders.append('%s:@%d-%d' % (ship_name, new_pos_r, new_pos_c))
 
             # Random Buy
@@ -1237,6 +1261,48 @@ def get_ship_radius(ship_type):
     return types[ship_type]
 
 
+def get_closest_asteroid(info, position):
+    """
+    Returns the closest asteroid on the board from a certain position
+
+    Parameters
+    ----------
+    info: the data structure with the portals and the asteroids (dictionary)
+    position: the position from where to check (list)
+
+    Returns
+    -------
+    asteroid: the closest asteroid (dictionary)
+
+    Version
+    -------
+    specification:
+    implementation:
+    """
+
+    current_closest_asteroid = info['asteroids'][0]
+    current_diff_x = -1
+    current_diff_y = -1
+
+    for asteroid in info['asteroids']:
+        asteroid_pos = asteroid['position']
+        diff_x = abs(position[0] - asteroid_pos[0])
+        diff_y = abs(position[1] - asteroid_pos[1])
+
+        close = False
+        if diff_x < current_diff_x or current_diff_x == -1:
+            close = True
+        if diff_y < current_diff_y or current_diff_y == -1:
+            close = True
+
+        if close:
+            current_closest_asteroid = asteroid
+            current_diff_x = diff_x
+            current_diff_y = diff_y
+
+    return current_closest_asteroid
+
+
 def check_range(attacker, target_pos, ships_ingame, ships_type):
     """
     Check if a ship is in the range of another ship.
@@ -1268,4 +1334,4 @@ def check_range(attacker, target_pos, ships_ingame, ships_type):
     return distance <= ships_type[attacker_ship['type']]['range']
 
 
-start_game('game.txt', ['human', 'ia'])
+start_game('game.txt', ['ia', 'ia'])
