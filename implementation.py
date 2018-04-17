@@ -1267,10 +1267,9 @@ def ia(ia_name, players, ships_ingame, ships_type, info):
                     position = ships_ingame[ship]['position']
                     random_x = random.randint(position[0] - ship_range, position[0] + ship_range)
                     random_y = random.randint(position[1] - ship_range, position[1] + ship_range)
-                    orders.append('%s:*%d-%d' % (ship, random_x, random_y))
+                    orders.append('%s:*%d-%d' % (ship, abs(random_x), abs(random_y)))
 
     final_ord = ' '.join(orders)
-    print('\'' + final_ord + '\'')
     return final_ord
 
 
