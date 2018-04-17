@@ -70,7 +70,7 @@ def start_game(config_name, player_types):
     game_board['size'] = load_size(info)
     game_board['portals'] = load_portals(info)
     game_board['asteroids'] = load_asteroids(info)
-    game_board['empty_round_left'] = 20
+    game_board['empty_round_left'] = 50
 
     # Create names for the players
     for player in player_types:
@@ -372,29 +372,36 @@ def attack_ship(orders, info, ships_ingame, ships_type):
 
     for order in orders:
         ship_name = order['order'].split(':')[0]
-        target_pos = [int(order['order'].split(':')[1].split('-')[0]), int(order['order'].split(':')[1].split('-')[1])]
+        target_pos = [int(order['order'].split(':')[1].split('-')[0].replace('*', '')),
+                      int(order['order'].split(':')[1].split('-')[1])]
+        is_damage = False
 
         # Check portal damage
         for portal in info['portals']:
             if target_pos == portal['position']:
                 damage = ships_type[ships_ingame[ship_name]['type']]['attack']
-                portal['life'] = portal['life'] - damage
+                portal['life'] -= damage
+                is_damage = True
 
         # Check ship damage
         for ship in ships_ingame:
-            if target_pos == ship['position']:
+            if target_pos == ships_ingame[ship]['position']:
                 damage = ships_type[ships_ingame[ship_name]['type']]['attack']
-                ship['life'] = ship['life'] - damage
+                ships_ingame[ship]['life'] -= damage
+                is_damage = True
 
         # Remove dead ships
-        for i in range(len(ships_ingame), 0, -1):
+        for i in range(len(ships_ingame) - 1, 0, -1):
             ship = list(ships_ingame.keys())[i]
             if ships_ingame[ship]['life'] <= 0:
                 print('The ship %s has been destroyed.' % ship)
                 del ships_ingame[ship]
 
-        return True
-    return False
+        if is_damage:
+            return False
+        else:
+            return True
+    return True
 
 
 def collect_ores(info, ships_ingame, players, ships_type):
@@ -773,8 +780,6 @@ def new_move_order(order, player_name, players, ships_ingame, info):
         # print('%s - You do not own that ship.' % order)
         return False
 
-    # TODO: Check if the player can move the ship (locked or not)
-
     # Check if the new pos next to the old one
     current_pos = ships_ingame[ship_name]['position']
     if abs(new_position[0] - current_pos[0]) > 1 or abs(new_position[1] - current_pos[1]) > 1:
@@ -841,12 +846,12 @@ def new_attack_order(order, player_name, players, ships_ingame, ships_type, info
         return False
 
     # Check Range
-    if not check_range(player_name, [target_pos[0], target_pos[1]], ships_ingame, ships_type):
+    if not check_range(ship_name, [target_pos[0], target_pos[1]], ships_ingame, ships_type):
         print('The target is too far to be reached.')
         return False
 
     # Check ship type
-    if ships_ingame[ship_name]['type'] not in ['Scout, Warship']:
+    if ships_ingame[ship_name]['type'] not in ['Scout', 'Warship']:
         print('You can not attack with that ship.')
         return False
 
@@ -1055,6 +1060,8 @@ def check_end_game(info, damage):
 
     if damage:
         info['empty_round_left'] -= 1
+    else:
+        info['empty_round_left'] = 50
     if info['empty_round_left'] == 0:
         return False
     for portal in info['portals']:
@@ -1076,7 +1083,6 @@ def end_game(players, info):
     -------
     specification: Cyril Weber (v.1 04/03/2018)
     implementation:
-
     """
 
     print('%s won the game!' % get_winner(players, info))
@@ -1145,7 +1151,7 @@ def get_winner(players, info):
         if nb_max_ores == 1:
             for player in players:
                 # ... We check for all players who has the highest value of total recolted ores
-                if player['total_recolted'] == current_max_ores:
+                if players[player]['total_recolted'] == current_max_ores:
                     return player
             else:
                 return 'Nobody'
@@ -1176,7 +1182,7 @@ def ia(ia_name, players, ships_ingame, ships_type, info):
     specification:
     implementation:
     """
-    # TODO: attack
+
     orders = []
 
     if players[ia_name]['type'] is 'ia':
@@ -1279,6 +1285,14 @@ def ia(ia_name, players, ships_ingame, ships_type, info):
                         orders.append('%s:release' % ship)
 
         # Attack
+        for ship in ships_ingame:
+            if ships_ingame[ship]['type'] in ['Scout', 'Warship']:
+                if get_player_from_ship(ship, players) == ia_name:
+                    ship_range = ships_type[ships_ingame[ship]['type']]['range']
+                    position = ships_ingame[ship]['position']
+                    random_x = random.randint(position[0] - ship_range, position[0] + ship_range)
+                    random_y = random.randint(position[1] - ship_range, position[1] + ship_range)
+                    orders.append('%s:*%d-%d' % (ship, random_x, random_y))
 
     final_ord = ' '.join(orders)
     print('\'' + final_ord + '\'')
