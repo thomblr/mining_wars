@@ -90,15 +90,6 @@ def start_game(config_name, player_types):
 
     while check_end_game(game_board, no_damage_in_the_round):
         time.sleep(1)
-
-        # ### DEBUG ###
-        print(game_board)
-        print('-----')
-        print(players)
-        print('-----')
-        print(ships_ingame)
-        print('-----')
-
         new_orders = {
             'buy_orders': [],
             'lock_orders': [],
@@ -113,7 +104,6 @@ def start_game(config_name, player_types):
                 interpret_orders(new_orders, order, player, ships_type, players, ships_ingame, game_board)
             else:
                 order = ia(player, players, ships_ingame, ships_type, game_board)
-                print(order)
                 interpret_orders(new_orders, order, player, ships_type, players, ships_ingame, game_board)
 
         # Buying Phase
@@ -122,9 +112,6 @@ def start_game(config_name, player_types):
         # Lock/Unlock Phase
         lock_ship(new_orders['lock_orders'], game_board, ships_ingame, players)
         unlock_ship(new_orders['unlock_orders'], game_board, ships_ingame, players)
-
-        for asteroid in game_board['asteroids']:
-            print(asteroid['ships_locked'])
 
         # Move Phase
         move_ship(new_orders['move_orders'], ships_ingame)
@@ -453,7 +440,6 @@ def collect_ores(info, ships_ingame, players, ships_type):
                 # ... we can give to each ship the max they can have
                 ships_ingame[ship]['ore'] += max_ores[ship]
                 asteroid['ore'] -= max_ores[ship]
-                print('Add %f to %s' % (max_ores[ship], ship))
         # The max number is greater than what's left in the asteroid -> we have to split
         else:
             new_ores_left = ores_left  # We save ores_left to modify it
@@ -461,21 +447,17 @@ def collect_ores(info, ships_ingame, players, ships_type):
 
             # While there are ores left in the asteroid
             while new_ores_left > 0.1:
-                print(max_ores)
-                print('||| %f' % new_ores_left)
                 # We compute the minimum of the ores the ships can collect
                 current_min = -1
                 for o in max_ores:
                     if max_ores[o] < current_min or current_min == -1:
                         current_min = max_ores[o]
-                        print('-=- %f' % current_min)
 
                 # We multiply the min by the number of ships to see if we can give that min to all the ships
                 if current_min * nb_ships <= ores_left:
                     for ship in max_ores:
                         ships_ingame[ship]['ore'] += current_min  # We give the min to each ships
                         asteroid['ore'] -= current_min
-                        print('Add %f to %s' % (current_min, ship))
                         new_ores_left -= current_min  # We subtract the min to see what's left to the asteroid
                         max_ores[ship] -= current_min  # We subtract the min to see what the ship can recolt
                 # If the min is greater to what the ships can recolt
@@ -483,7 +465,6 @@ def collect_ores(info, ships_ingame, players, ships_type):
                     for ship in max_ores:
                         ships_ingame[ship]['ore'] += (ores_left / new_nb_ships)
                         asteroid['ore'] -= (ores_left / new_nb_ships)
-                        print('Add %f to %s' % ((ores_left / new_nb_ships), ship))
                         new_ores_left -= (ores_left / new_nb_ships)
                         max_ores[ship] -= current_min
 
@@ -783,7 +764,7 @@ def new_move_order(order, player_name, players, ships_ingame, info):
     # Check if the new pos next to the old one
     current_pos = ships_ingame[ship_name]['position']
     if abs(new_position[0] - current_pos[0]) > 1 or abs(new_position[1] - current_pos[1]) > 1:
-        print('%s - Movement too far (>1)' % order)
+        # print('%s - Movement too far (>1)' % order)
         return False
 
     # Check if the new pos is in the board
@@ -826,33 +807,28 @@ def new_attack_order(order, player_name, players, ships_ingame, ships_type, info
     implementation: Thomas Blanchy (v.1 15/04/2018)
     """
 
-    # Check if target pos is in range
-    # Remove life to every ship on the pos
-    # Handle events if life <= 0
-    #   Remove ship
-
     # order is type : ship_name:*r-c
     ship_name = order.split(':')[0]
     target_pos = [int(order.split(':')[1].split('-')[0].replace('*', '')), int(order.split(':')[1].split('-')[1])]
 
     # Check in board
     if target_pos[0] < 1 or target_pos[1] < 1 or target_pos[0] > info['size'][0] or target_pos[1] > info['size'][1]:
-        print('You can not attack out of the board.')
+        # print('You can not attack out of the board.')
         return False
 
     # Check property
     if ship_name not in players[player_name]['ships']:
-        print('You do not own that ship.')
+        # print('You do not own that ship.')
         return False
 
     # Check Range
     if not check_range(ship_name, [target_pos[0], target_pos[1]], ships_ingame, ships_type):
-        print('The target is too far to be reached.')
+        # print('The target is too far to be reached.')
         return False
 
     # Check ship type
     if ships_ingame[ship_name]['type'] not in ['Scout', 'Warship']:
-        print('You can not attack with that ship.')
+        # print('You can not attack with that ship.')
         return False
 
     new_order = {
@@ -893,11 +869,11 @@ def new_buy_order(order, player_name, ships_type, ships_ingame, players):
     money_in_bank = players[player_name]['ore']
 
     if money_in_bank < price:
-        print('You do not have enough money to buy that ship.')
+        # print('You do not have enough money to buy that ship.')
         return False
 
     if ship_name in ships_ingame.keys():
-        print('That ship name is already used.')
+        # print('That ship name is already used.')
         return False
 
     new_order = {
@@ -934,20 +910,20 @@ def new_lock_order(order, player_name, players, ships_ingame, info):
 
     # Check if own the ship
     if ship_name not in players[player_name]['ships']:
-        print('You do not own that ship.')
+        # print('You do not own that ship.')
         return False
 
     ship_pos = ships_ingame[ship_name]['position']
 
     # Check if it is an excavator
     if ships_ingame[ship_name]['type'] not in ['Excavator-S', 'Excavator-M', 'Excavator-L']:
-        print('You can not lock that ship.')
+        # print('You can not lock that ship.')
         return False
 
     for asteroid in info['asteroids']:
         if asteroid['position'] == ship_pos:
             if ship_name in asteroid['ships_locked']:
-                print('That ship is already locked')
+                # print('That ship is already locked')
                 return False
 
             new_order = {
@@ -960,7 +936,7 @@ def new_lock_order(order, player_name, players, ships_ingame, info):
     for portal in info['portals']:
         if portal['position'] == ship_pos:
             if ship_name in portal['ships_locked']:
-                print('That ship is already locked.')
+                # print('That ship is already locked.')
                 return False
 
             new_order = {
@@ -997,20 +973,20 @@ def new_unlock_order(order, player_name, players, ships_ingame, info):
 
     # Check if own the ship
     if ship_name not in players[player_name]['ships']:
-        print('You do not own that ship.')
+        # print('You do not own that ship.')
         return False
 
     ship_pos = ships_ingame[ship_name]['position']
 
     # Check if it is an excavator
     if ships_ingame[ship_name]['type'] not in ['Excavator-S', 'Excavator-M', 'Excavator-L']:
-        print('You can not unlock that ship.')
+        # print('You can not unlock that ship.')
         return False
 
     for asteroid in info['asteroids']:
         if asteroid['position'] == ship_pos:
             if ship_name not in asteroid['ships_locked']:
-                print('That ship is not locked')
+                # print('That ship is not locked')
                 return False
 
             new_order = {
@@ -1023,7 +999,7 @@ def new_unlock_order(order, player_name, players, ships_ingame, info):
     for portal in info['portals']:
         if portal['position'] == ship_pos:
             if ship_name not in portal['ships_locked']:
-                print('That ship is not locked.')
+                # print('That ship is not locked.')
                 return False
 
             new_order = {
@@ -1258,7 +1234,6 @@ def ia(ia_name, players, ships_ingame, ships_type, info):
                         stock = ships_type[ships_ingame[ship]['type']]['tonnage'] - ships_ingame[ship]['ore']
                         if asteroid['position'] == ships_ingame[ship]['position'] and stock > 0:
                             if ship not in asteroid['ships_locked']:
-                                print('New lock order %s' % ship)
                                 orders.append('%s:lock' % ship)
 
         # Lock to portal
