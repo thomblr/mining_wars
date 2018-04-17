@@ -1508,4 +1508,4 @@ def check_range(attacker, target_pos, ships_ingame, ships_type):
     return distance <= ships_type[attacker_ship['type']]['range']
 
 
-start_game('game.txt', ['ia', 'ia'])
+# start_game('game.txt', ['ia', 'ia'])
