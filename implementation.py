@@ -1003,7 +1003,7 @@ def new_unlock_order(order, player_name, players, ships_ingame, info):
     ship_pos = ships_ingame[ship_name]['position']
 
     # Check if it is an excavator
-    if ships_ingame[ship_name]['type'] not  in ['Excavator-S', 'Excavator-M', 'Excavator-L']:
+    if ships_ingame[ship_name]['type'] not in ['Excavator-S', 'Excavator-M', 'Excavator-L']:
         print('You can not unlock that ship.')
         return False
 
