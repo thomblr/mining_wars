@@ -15,7 +15,7 @@ def start_game(config_name, player_types):
     Version
     -------
     specification: Thomas Blanchy (v.2 09/03/2018)
-    implementation:
+    implementation: Thomas Blanchy (v.1 15/04/2018)
     """
 
     # All the data structures that will be used
@@ -161,7 +161,7 @@ def draw_board(info, ships, ships_structure, players):
     Version
     -------
     specification: Joaquim Peremans (v.1 05/03/2018)
-    implementation:
+    implementation: Joaquim Peremans (v.1 15/04/2018)
     """
 
     board = []
@@ -187,8 +187,8 @@ def build_empty_board(info, board):
 
     Version
     -------
-    specification:
-    implementation:
+    specification: Joaquim Peremans (v.1 15/04/2018)
+    implementation: Joaquim Peremans (v.1 15/04/2018)
     """
 
     for i in range(info['size'][0]):
@@ -212,7 +212,7 @@ def add_ships_to_board(board, ships, ships_structure, players):
     Version
     -------
     specification: Joaquim Peremans (v.1 05/03/2018)
-    implementation:
+    implementation: Joaquim Peremans (v.1 15/04/2018)
     """
 
     ship_colors = [1, 21]
@@ -241,7 +241,7 @@ def add_asteroids_to_board(board, info):
     Version
     -------
     specification: Joaquim Peremans (v.1 05/03/2018)
-    implementation:
+    implementation: Joaquim Peremans (v.1 15/04/2018)
     """
 
     for asteroid in info['asteroids']:
@@ -264,7 +264,7 @@ def add_portals_to_board(board, info):
     Version
     -------
     specification: Joaquim Peremans (v.1 05/03/2018)
-    implementation:
+    implementation: Joaquim Peremans (v.1 15/04/2018)
     """
 
     portal_colors = [174, 45]
@@ -298,7 +298,7 @@ def buy_ships(orders, players, ships_ingame, ships_type, info):
     Version
     -------
     specification: Joaquim Peremans (v.1 05/03/2018)
-    implementation:
+    implementation: Joaquim Peremans (v.1 15/04/2018)
     """
 
     for order in orders:
@@ -338,7 +338,7 @@ def move_ship(orders, ships_ingame):
     Version
     -------
     specification: Joaquim Peremans (v.1 05/03/2018)
-    implementation:
+    implementation: Joaquim Peremans (v.1 15/04/2018)
     """
 
     for order in orders:
@@ -367,7 +367,7 @@ def attack_ship(orders, info, ships_ingame, ships_type):
     Version
     -------
     specification: Joaquim Peremans (v.1 05/03/2018)
-    implementation:
+    implementation: Joaquim Peremans (v.1 15/04/2018)
     """
 
     for order in orders:
@@ -418,7 +418,7 @@ def collect_ores(info, ships_ingame, players, ships_type):
     Version
     -------
     specification: Thomas Blanchy (v.2 09/03/2018)
-    implementation:
+    implementation: Thomas Blanchy, Cyril Weber (v.1 15/04/2018)
     """
 
     # Collect ores from asteroids
@@ -521,7 +521,7 @@ def lock_ship(orders, info, ships_ingame, players):
     Version
     -------
     specification: Thomas Blanchy (v.3 16/04/2018)
-    implementation:
+    implementation: Thomas Blanchy (v.1 15/04/2018)
     """
 
     for order in orders:
@@ -554,7 +554,7 @@ def unlock_ship(orders, info, ships_ingame, players):
     Version
     -------
     specification: Thomas Blanchy (v.2 09/03/2018)
-    implementation:
+    implementation: Thomas Blanchy (v.1 15/04/2018)
     """
 
     for order in orders:
@@ -592,7 +592,7 @@ def load_file(config_name):
     Version
     -------
     specification: Cyril Weber (v.1 03/03/2018)
-    implementation:
+    implementation: Cyril Weber (v.1 15/04/2018)
     """
 
     fh = open(config_name, 'r')
@@ -617,7 +617,7 @@ def load_size(file_info):
     Version
     -------
     specification: Cyril Weber (v.1 03/03/2018)
-    implementation:
+    implementation: Cyril Weber (v.1 15/04/2018)
     """
 
     coords = file_info[1].split(' ')
@@ -640,7 +640,7 @@ def load_portals(file_info):
     Version
     -------
     specification: Cyril Weber (v.1 03/03/2018)
-    implementation:
+    implementation: Cyril Weber (v.1 15/04/2018)
     """
 
     portals = file_info[file_info.index('portals:') + 1:file_info.index('asteroids:')]
@@ -671,7 +671,7 @@ def load_asteroids(file_info):
     Version
     -------
     specification: Cyril Weber (v.1 03/03/2018)
-    implementation:
+    implementation: Cyril Weber (v.1 15/04/2018)
     """
 
     asteroids = file_info[file_info.index('asteroids:') + 1:]
@@ -710,7 +710,7 @@ def interpret_orders(new_orders, orders, player_name, ships_type, players, ships
     Version
     -------
     specification: Thomas Blanchy (v.1 03/03/2018)
-    implementation:
+    implementation: Thomas Blanchy (v.1 15/04/2018)
     """
 
     if len(orders) > 0:
@@ -766,7 +766,7 @@ def new_move_order(order, player_name, players, ships_ingame, info):
     Version
     -------
     specification: Thomas Blanchy (v.2 01/04/2018)
-    implementation:
+    implementation: Thomas Blanchy (v.1 15/04/2018)
     """
 
     # Extract the new position from the order
@@ -823,7 +823,7 @@ def new_attack_order(order, player_name, players, ships_ingame, ships_type, info
     Version
     -------
     specification: Thomas Blanchy (v.1 03/03/2018)
-    implementation:
+    implementation: Thomas Blanchy (v.1 15/04/2018)
     """
 
     # Check if target pos is in range
@@ -882,7 +882,7 @@ def new_buy_order(order, player_name, ships_type, ships_ingame, players):
     Version
     -------
     specification: Thomas Blanchy (v.1 03/03/2018)
-    implementation:
+    implementation: Thomas Blanchy (v.1 15/04/2018)
     """
 
     ship_name = order.split(':')[0]
@@ -927,7 +927,7 @@ def new_lock_order(order, player_name, players, ships_ingame, info):
     Version
     -------
     specification: Thomas Blanchy (v.1 03/03/2018)
-    implementation:
+    implementation: Thomas Blanchy (v.1 15/04/2018)
     """
 
     ship_name = order.split(':')[0]
@@ -990,7 +990,7 @@ def new_unlock_order(order, player_name, players, ships_ingame, info):
     Version
     -------
     specification: Thomas Blanchy (v.1 03/03/2018)
-    implementation:
+    implementation: Thomas Blanchy (v.1 15/04/2018)
     """
 
     ship_name = order.split(':')[0]
@@ -1055,7 +1055,7 @@ def check_end_game(info, damage):
     Version
     -------
     specification: Cyril Weber, Thomas Blanchy (v.2 01/04/2018)
-    implementation:
+    implementation: Cyril Weber, Thomas Blanchy (v.1 15/04/2018)
     """
 
     if damage:
@@ -1082,7 +1082,7 @@ def end_game(players, info):
     Version
     -------
     specification: Cyril Weber (v.1 04/03/2018)
-    implementation:
+    implementation: Cyril Weber (v.1 15/04/2018)
     """
 
     print('%s won the game!' % get_winner(players, info))
@@ -1104,7 +1104,7 @@ def get_winner(players, info):
     Version
     -------
     specification: Cyril Weber (v.1 04/03/2018)
-    implementation:
+    implementation: Thomas Blanchy (v.1 15/04/2018)
     """
 
     portals_life = []
@@ -1179,8 +1179,8 @@ def ia(ia_name, players, ships_ingame, ships_type, info):
 
     Version
     -------
-    specification:
-    implementation:
+    specification: Thomas Blanchy (v.1 15/04/2018)
+    implementation: Thomas Blanchy, Cyril Weber, Joaquim Peremans (v.1 15/04/2018)
     """
 
     orders = []
@@ -1319,8 +1319,8 @@ def get_portal_from_player(player_name, players, info):
 
     Version
     -------
-    specification:
-    implementation:
+    specification: Thomas Blanchy (v.1 15/04/2018)
+    implementation: Thomas Blanchy (v.1 15/04/2018)
     """
 
     # First portal goes to first player ...
@@ -1344,9 +1344,8 @@ def get_player_from_ship(ship_name, players):
 
     Version
     -------
-    specification:
-    implementation:
-
+    specification: Cyril Weber (v.1 15/04/2018)
+    implementation: Cyril Weber (v.1 15/04/2018)
     """
 
     for player in players:
@@ -1369,8 +1368,8 @@ def is_locked(ship_name, info):
 
     Version
     -------
-    specification:
-    implementation:
+    specification: Joaquim Peremans (v.1 15/04/2018)
+    implementation: Joaquim Peremans (v.1 15/04/2018)
     """
     if ship_name in ['Excavator-S', 'Excavator-M', 'Excavator-L']:
         for asteroid in info['asteroids']:
@@ -1396,8 +1395,8 @@ def get_asteroid_from_position(position, info):
 
     Version
     -------
-    specification:
-    implementation:
+    specification: Thomas Blanchy (v.1 15/04/2018)
+    implementation: Thomas Blanchy (v.1 15/04/2018)
     """
 
     for asteroid in info['asteroids']:
@@ -1420,8 +1419,8 @@ def get_ship_radius(ship_type):
 
     Version
     -------
-    specification:
-    implementation:
+    specification: Thomas Blanchy (v.1 15/03/2018)
+    implementation: Thomas Blanchy (v.1 15/03/2018)
     """
 
     types = {
@@ -1450,8 +1449,8 @@ def get_closest_asteroid(info, position):
 
     Version
     -------
-    specification:
-    implementation:
+    specification: Thomas Blanchy (v.1 12/04/2018)
+    implementation: Thomas Blanchy (v.1 12/04/2018)
     """
 
     current_closest_asteroid = info['asteroids'][0]
@@ -1496,7 +1495,7 @@ def check_range(attacker, target_pos, ships_ingame, ships_type):
     Version
     -------
     specification: Thomas Blanchy (v.2 01/04/2018)
-    implementation:
+    implementation: Thomas Blanchy (v.1 9/04/2018)
     """
 
     attacker_ship = ships_ingame[attacker]
