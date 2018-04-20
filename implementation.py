@@ -384,6 +384,11 @@ def attack_ship(orders, info, ships_ingame, ships_type):
                 print('The ship %s has been destroyed.' % ship)
                 del ships_ingame[ship]
 
+                for asteroid in info['asteroids']:
+                    ships_locked = asteroid['ships_locked']
+                    if ship in ships_locked:
+                        ships_locked.remove(ship)
+
         if is_damage:
             return False
         else:
@@ -1482,4 +1487,4 @@ def check_range(attacker, target_pos, ships_ingame, ships_type):
     return distance <= ships_type[attacker_ship['type']]['range']
 
 
-# start_game('game.txt', ['ia', 'ia'])
+start_game('game.txt', ['ia', 'ia'])
