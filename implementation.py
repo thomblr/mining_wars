@@ -336,7 +336,7 @@ def move_ship(orders, ships_ingame):
         ships_ingame[ship_name]['position'] = new_position
 
 
-def attack_ship(orders, info, ships_ingame, ships_type):
+def attack_ship(orders, info, ships_ingame, ships_type, players):
     """
     Launch an attack based on the ship concerned.
 
@@ -346,6 +346,7 @@ def attack_ship(orders, info, ships_ingame, ships_type):
     info: the data structure with the portals and the asteroids (dictionary)
     ships_ingame: the information of the ships on the board (dictionary)
     ships_type: the features of the ships (dictionary)
+    players: the information of the players (dictionary)
 
     Returns
     -------
@@ -353,8 +354,8 @@ def attack_ship(orders, info, ships_ingame, ships_type):
 
     Version
     -------
-    specification: Joaquim Peremans (v.1 05/03/2018)
-    implementation: Joaquim Peremans (v.1 15/04/2018)
+    specification: Joaquim Peremans, Thomas Blanchy (v.2 20/04/2018)
+    implementation: Joaquim Peremans, Thomas Blanchy (v.2 20/04/2018)
     """
 
     for order in orders:
@@ -384,10 +385,16 @@ def attack_ship(orders, info, ships_ingame, ships_type):
                 print('The ship %s has been destroyed.' % ship)
                 del ships_ingame[ship]
 
+                # Delete ships from locked ships on asteroids
                 for asteroid in info['asteroids']:
                     ships_locked = asteroid['ships_locked']
                     if ship in ships_locked:
                         ships_locked.remove(ship)
+
+                # Delete ships from players ships
+                for player in players:
+                    if ship in players[player]['ships']:
+                        players[player]['ships'].remove(ship)
 
         if is_damage:
             return False
