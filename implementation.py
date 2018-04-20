@@ -117,7 +117,7 @@ def start_game(config_name, player_types):
         move_ship(new_orders['move_orders'], ships_ingame)
 
         # Attack Phase
-        no_damage_in_the_round = attack_ship(new_orders['attack_orders'], game_board, ships_ingame, ships_type)
+        no_damage_in_the_round = attack_ship(new_orders['attack_orders'], game_board, ships_ingame, ships_type, players)
 
         # Recolt Phase
         collect_ores(game_board, ships_ingame, players, ships_type)
