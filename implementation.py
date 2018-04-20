@@ -161,6 +161,7 @@ def draw_board(info, ships, ships_structure, players):
         for col in row:
             print(col, end=' ')
         print('')
+    print('-' * len(board))
 
 
 def build_empty_board(info, board):
@@ -235,7 +236,7 @@ def add_asteroids_to_board(board, info):
         pos_x = asteroid['position'][0]
         pos_y = asteroid['position'][1]
         ore = asteroid['ore']
-        color = colored.fg(2) if ore > 0 else colored.fg(15)
+        color = colored.fg(2) if ore > 0.1 else colored.fg(15)
         board[int(pos_x) - 1][int(pos_y) - 1] = color + '\u25D8' + colored.attr('reset')
 
 
