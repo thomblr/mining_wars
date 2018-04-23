@@ -1174,7 +1174,7 @@ def ia(ia_name, players, ships_ingame, ships_type, info):
 
     orders = []
 
-    if players[ia_name]['type'] is 'ia':
+    if players[ia_name]['type'] == 'ia':
         # Random Move
         for ship_name in players[ia_name]['ships']:
             ship = ships_ingame[ship_name]
