@@ -646,12 +646,12 @@ def load_portals(file_info):
     portals = file_info[file_info.index('portals:') + 1:file_info.index('asteroids:')]
     portals_pos = []
     for portal in portals:
-        portal_pos = {}
         coords = portal.split(' ')
-        pos = [int(coords[0]), int(coords[1])]
-        portal_pos['position'] = pos
-        portal_pos['life'] = 100
-        portal_pos['ships_locked'] = []
+        portal_pos = {
+            'position': [int(coords[0]), int(coords[1])],
+            'life': 100,
+            'ships_locked': []
+        }
         portals_pos.append(portal_pos)
     return portals_pos
 
