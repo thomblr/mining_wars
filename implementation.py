@@ -99,7 +99,7 @@ def start_game(config_name, player_types):
         }
 
         for player in players:
-            if players[player]['type'] is 'human':
+            if players[player]['type'] == 'human':
                 order = input('Order of %s: ' % player)
                 interpret_orders(new_orders, order, player, ships_type, players, ships_ingame, game_board)
             else:
