@@ -122,8 +122,9 @@ def start_game(config_name, player_types):
         # Recolt Phase
         collect_ores(game_board, ships_ingame, players, ships_type)
 
-        # Show board
+        # Show board & information
         draw_board(game_board, ships_ingame, ships_structure, players)
+        show_information(game_board, players, ships_ingame)
 
     end_game(players, game_board)
     print('Game Over!')
