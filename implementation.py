@@ -266,6 +266,26 @@ def add_portals_to_board(board, info):
                 board[int(pos_x) + i - 1][int(pos_y) + j - 1] = color + '\u25CC' + colored.attr('reset')
 
 
+def show_information(info, players, ships_ingame):
+    """
+    Display all the information of the game
+
+    Parameters
+    ----------
+    info: the data structure with the asteroids and the portals (dictionary)
+    players: the information of the players (dictionary)
+    ships_ingame: the information of the ships on the board (dictionary)
+
+    Version
+    -------
+    specification: Thomas Blanchy (v.1 23/04/2018)
+    implementation: Thomas Blanchy (v.1 23/04/2018)
+    """
+
+    print(info)
+    print(players)
+    print(ships_ingame)
+
 #
 #   Actions
 #
