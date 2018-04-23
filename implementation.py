@@ -1447,25 +1447,20 @@ def get_closest_asteroid(info, position):
     """
 
     current_closest_asteroid = info['asteroids'][0]
-    current_diff_x = -1
-    current_diff_y = -1
+    current_distance = -1
 
     for asteroid in info['asteroids']:
         if asteroid['ore'] > 0.1:
             asteroid_pos = asteroid['position']
-            diff_x = abs(position[0] - asteroid_pos[0])
-            diff_y = abs(position[1] - asteroid_pos[1])
+            distance = abs(position[0] - asteroid_pos[0]) + abs(position[1] - asteroid_pos[1])
 
             close = False
-            if diff_x < current_diff_x or current_diff_x == -1:
-                close = True
-            if diff_y < current_diff_y or current_diff_y == -1:
+            if distance < current_distance or current_distance == -1:
                 close = True
 
             if close:
                 current_closest_asteroid = asteroid
-                current_diff_x = diff_x
-                current_diff_y = diff_y
+                current_distance = distance
 
     return current_closest_asteroid
 
