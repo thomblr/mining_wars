@@ -1,6 +1,7 @@
 import colored
 import random
 import time
+import math
 
 
 def start_game(config_name, player_types):
@@ -288,13 +289,52 @@ def show_information(info, players, ships_ingame):
     print(ships_ingame)
 
     # Compute the max width of the display
-    current_length = 0
+    current_length = 1
     ships_name_line = '|'
+    name_line = '|'
+    separator_line = '['
     for player in players:
-        for ship in players[player]['ships'][:4]:
-            current_length += len(ship) + 3
-            ships_name_line += ' %s |' % ship
+        name_side_length = 0
+        for i in range(5):
+            end = '|'
+            if i == 4:
+                end = ':'
+            if len(players[player]['ships']) > i:
+                ship = players[player]['ships'][i]
+                current_length += len(ship) + 3  # Ships name line
+                ships_name_line += ' %s %s' % (ship, end)  # Ships name line
 
+                name_line += ' ' * (len(ship) + 3)  # Name line
+                name_side_length += len(ship) + 3  # Name line
+            else:
+                current_length += 7  # Ships name line
+                ships_name_line += '      %s' % end  # Ships name line
+
+                name_line += ' ' * 7  # Name line
+                name_side_length += 7  # Name line
+
+        name_line = name_line[:-1]  # Name line
+        separator_line += '=' * (name_side_length - 1)  # Separator line
+
+        # Name line
+        start = 0
+        if list(players.keys()).index(player) == 0:
+            name_line += ':'
+            separator_line += ':'
+        else:
+            name_line += '|'
+            separator_line += ']'
+            start = name_line.index(':')
+
+        name_length = len(player)
+        start_index = start + int(math.floor(((name_side_length - name_length) / 2)))
+        end_index = start_index + name_length
+        name_line = name_line[:start_index] + player + name_line[end_index:]
+
+    ships_name_line = ships_name_line[:-1] + '|'
+    print('-' * current_length)
+    print(name_line)
+    print(separator_line)
     print(ships_name_line)
 
 #
