@@ -287,6 +287,16 @@ def show_information(info, players, ships_ingame):
     print(players)
     print(ships_ingame)
 
+    # Compute the max width of the display
+    current_length = 0
+    ships_name_line = '|'
+    for player in players:
+        for ship in players[player]['ships'][:4]:
+            current_length += len(ship) + 3
+            ships_name_line += ' %s |' % ship
+
+    print(ships_name_line)
+
 #
 #   Actions
 #
