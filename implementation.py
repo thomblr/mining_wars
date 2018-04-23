@@ -1273,7 +1273,7 @@ def ia(ia_name, players, ships_ingame, ships_type, info):
                 chance = random.random()
                 if chance > 0.5:
                     money -= ships_type[ship_type]['cost']
-                    ship_name = 'ia_ship#%s#%d' % (ship_type, random.randint(0, 999))
+                    ship_name = 'ias#%d' % random.randint(0, 999)
                     orders.append('%s:%s' % (ship_name, ship_type))
 
         # Lock to asteroid
