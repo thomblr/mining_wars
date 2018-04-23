@@ -392,6 +392,12 @@ def attack_ship(orders, info, ships_ingame, ships_type, players):
                     if ship in ships_locked:
                         ships_locked.remove(ship)
 
+                # Delete ships from locked ships on portals
+                for portal in info['portals']:
+                    ships_locked = portal['ships_locked']
+                    if ship in ships_locked:
+                        ships_locked.remove(ship)
+
                 # Delete ships from players ships
                 for player in players:
                     if ship in players[player]['ships']:
