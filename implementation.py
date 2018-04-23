@@ -74,7 +74,7 @@ def start_game(config_name, player_types):
 
     # Create names for the players
     for player in player_types:
-        if player is 'human':
+        if player == 'human':
             name = input('Name of the player %d ? (unique)' % (player_types.index(player) + 1))
         else:
             print('Random name for player %d ...' % (player_types.index(player) + 1))
