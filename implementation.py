@@ -352,20 +352,34 @@ def show_information(info, players, ships_ingame):
 
     # Current Ore line
     ore_line = '| '
+    total_recolted_line = '| '
     for player in players:
         ore_side_length = side_length[list(players.keys()).index(player)]
         current_ore = players[player]['ore']
-        offset = 0
+        total_recolted = players[player]['total_recolted']
+        offset_ore = 0
+        offset_recolted = 0
+
         if current_ore < 10:
-            offset = 2
+            offset_ore = 2
         elif current_ore < 100:
-            offset = 1
-        ore_line += 'Current Ore : %d%s' % (current_ore, ' ' * (ore_side_length - (18 - offset)))
+            offset_ore = 1
+
+        if total_recolted < 10:
+            offset_recolted = 2
+        elif total_recolted < 100:
+            offset_recolted = 1
+
+        ore_line += 'Current Ore : %d%s' % (current_ore, ' ' * (ore_side_length - (19 - offset_ore)))
+        total_recolted_line += 'Total Recolted : %d%s' % \
+                               (total_recolted, ' ' * (ore_side_length - (22 - offset_recolted)))
 
         if list(players.keys()).index(player) == 0:
             ore_line += ': '
+            total_recolted_line += ': '
         else:
             ore_line += '|'
+            total_recolted_line += '|'
 
     ships_name_line = ships_name_line[:-1] + '|'
     print('-' * current_length)
@@ -373,6 +387,7 @@ def show_information(info, players, ships_ingame):
     print(separator_line)
     print(portal_line)
     print(ore_line)
+    print(total_recolted_line)
     print(ships_name_line)
 
 #
