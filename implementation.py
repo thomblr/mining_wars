@@ -294,7 +294,6 @@ def show_information(info, players, ships_ingame):
     current_length = 1
     ships_name_line = '|'
     name_line = '|'
-    separator_line = '['
     for player in players:
         player_index = list(players.keys()).index(player)
         for i in range(5):
@@ -316,16 +315,13 @@ def show_information(info, players, ships_ingame):
                 side_length[player_index] += 7
 
         name_line = name_line[:-1]  # Name line
-        separator_line += '=' * (side_length[player_index] - 1)  # Separator line
 
         # Name line
         start = 0
         if list(players.keys()).index(player) == 0:
             name_line += ':'
-            separator_line += ':'
         else:
             name_line += '|'
-            separator_line += ']'
             start = name_line.index(':')
 
         name_length = len(player)
@@ -384,11 +380,35 @@ def show_information(info, players, ships_ingame):
     ships_name_line = ships_name_line[:-1] + '|'
     print('-' * current_length)
     print(name_line)
-    print(separator_line)
+    print(get_separator_line('=', side_length))
     print(portal_line)
     print(ore_line)
     print(total_recolted_line)
+    print(get_separator_line('-', side_length))
     print(ships_name_line)
+
+
+def get_separator_line(separator, side_length):
+    """
+    Get a separator line
+
+    Parameters
+    ----------
+    separator: the character of the separator (str)
+    side_length: the length of both sides (list)
+
+    Returns
+    -------
+    separator: the full separator line (str)
+
+    Version
+    -------
+    specification: Thomas Blanchy (v.1 24/04/2018)
+    implementation: Thomas Blanchy (v.1 24/04/2018)
+    """
+
+    line = '[%s:%s]' % (separator * (side_length[0] - 1), separator * (side_length[1] - 1))
+    return line
 
 #
 #   Actions
