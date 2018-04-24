@@ -288,13 +288,15 @@ def show_information(info, players, ships_ingame):
     print(players)
     print(ships_ingame)
 
+    side_length = [0, 0]
+
     # Compute the max width of the display
     current_length = 1
     ships_name_line = '|'
     name_line = '|'
     separator_line = '['
     for player in players:
-        name_side_length = 0
+        player_index = list(players.keys()).index(player)
         for i in range(5):
             end = '|'
             if i == 4:
@@ -305,16 +307,16 @@ def show_information(info, players, ships_ingame):
                 ships_name_line += ' %s %s' % (ship, end)  # Ships name line
 
                 name_line += ' ' * (len(ship) + 3)  # Name line
-                name_side_length += len(ship) + 3  # Name line
+                side_length[player_index] += len(ship) + 3
             else:
                 current_length += 7  # Ships name line
                 ships_name_line += '      %s' % end  # Ships name line
 
                 name_line += ' ' * 7  # Name line
-                name_side_length += 7  # Name line
+                side_length[player_index] += 7
 
         name_line = name_line[:-1]  # Name line
-        separator_line += '=' * (name_side_length - 1)  # Separator line
+        separator_line += '=' * (side_length[player_index] - 1)  # Separator line
 
         # Name line
         start = 0
@@ -327,14 +329,32 @@ def show_information(info, players, ships_ingame):
             start = name_line.index(':')
 
         name_length = len(player)
-        start_index = start + int(math.floor(((name_side_length - name_length) / 2)))
+        start_index = start + int(math.floor(((side_length[player_index] - name_length) / 2)))
         end_index = start_index + name_length
         name_line = name_line[:start_index] + player + name_line[end_index:]
+
+    # Portal life line
+    portal_line = '| '
+    for portal in info['portals']:
+        side_length = info['portals'].index(portal)
+        p_life = portal['life']
+        offset = 0
+        if p_life < 100:
+            offset = 1
+        elif p_life < 10:
+            offset = 2
+        portal_line += 'Portal life : %d%s' % (portal['life'], ' ' * (side_length - (19 + offset)))
+
+        if info['portals'].index(portal) == 0:
+            portal_line += ': '
+        else:
+            portal_line += '|'
 
     ships_name_line = ships_name_line[:-1] + '|'
     print('-' * current_length)
     print(name_line)
     print(separator_line)
+    print(portal_line)
     print(ships_name_line)
 
 #
