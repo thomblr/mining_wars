@@ -336,25 +336,43 @@ def show_information(info, players, ships_ingame):
     # Portal life line
     portal_line = '| '
     for portal in info['portals']:
-        side_length = info['portals'].index(portal)
+        portal_side_length = side_length[info['portals'].index(portal)]
         p_life = portal['life']
         offset = 0
-        if p_life < 100:
-            offset = 1
-        elif p_life < 10:
+        if p_life < 10:
             offset = 2
-        portal_line += 'Portal life : %d%s' % (portal['life'], ' ' * (side_length - (19 + offset)))
+        elif p_life < 100:
+            offset = 1
+        portal_line += 'Portal life : %d%s' % (p_life, ' ' * (portal_side_length - (19 - offset)))
 
         if info['portals'].index(portal) == 0:
             portal_line += ': '
         else:
             portal_line += '|'
 
+    # Current Ore line
+    ore_line = '| '
+    for player in players:
+        ore_side_length = side_length[list(players.keys()).index(player)]
+        current_ore = players[player]['ore']
+        offset = 0
+        if current_ore < 10:
+            offset = 2
+        elif current_ore < 100:
+            offset = 1
+        ore_line += 'Current Ore : %d%s' % (current_ore, ' ' * (ore_side_length - (18 - offset)))
+
+        if list(players.keys()).index(player) == 0:
+            ore_line += ': '
+        else:
+            ore_line += '|'
+
     ships_name_line = ships_name_line[:-1] + '|'
     print('-' * current_length)
     print(name_line)
     print(separator_line)
     print(portal_line)
+    print(ore_line)
     print(ships_name_line)
 
 #
