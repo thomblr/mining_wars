@@ -289,6 +289,8 @@ def show_information(info, players, ships_ingame):
     print(ships_ingame)
 
     current_length = 81
+
+    # Player name line
     name_line = '|%s:%s|' % ((' ' * 39), (' ' * 39))
     for player in players:
         start = 0
@@ -316,7 +318,7 @@ def show_information(info, players, ships_ingame):
         else:
             portal_line += '|'
 
-    # Current Ore line
+    # Current Ore & Total Ore line
     ore_line = '| '
     total_recolted_line = '| '
     for player in players:
