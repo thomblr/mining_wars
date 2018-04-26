@@ -288,51 +288,21 @@ def show_information(info, players, ships_ingame):
     print(players)
     print(ships_ingame)
 
-    side_length = [0, 0]
-
-    # Compute the max width of the display
-    current_length = 1
-    ships_name_line = '|'
-    name_line = '|'
+    current_length = 81
+    name_line = '|%s:%s|' % ((' ' * 39), (' ' * 39))
     for player in players:
-        player_index = list(players.keys()).index(player)
-        for i in range(5):
-            end = '|'
-            if i == 4:
-                end = ':'
-            if len(players[player]['ships']) > i:
-                ship = players[player]['ships'][i]
-                current_length += len(ship) + 3  # Ships name line
-                ships_name_line += ' %s %s' % (ship, end)  # Ships name line
-
-                name_line += ' ' * (len(ship) + 3)  # Name line
-                side_length[player_index] += len(ship) + 3
-            else:
-                current_length += 7  # Ships name line
-                ships_name_line += '      %s' % end  # Ships name line
-
-                name_line += ' ' * 7  # Name line
-                side_length[player_index] += 7
-
-        name_line = name_line[:-1]  # Name line
-
-        # Name line
         start = 0
-        if list(players.keys()).index(player) == 0:
-            name_line += ':'
-        else:
-            name_line += '|'
-            start = name_line.index(':')
-
+        if list(players.keys()).index(player) == 1:
+            start = 41
         name_length = len(player)
-        start_index = start + int(math.floor(((side_length[player_index] - name_length) / 2)))
+        start_index = start + int((((current_length - 3) / 2) - name_length) / 2)
         end_index = start_index + name_length
         name_line = name_line[:start_index] + player + name_line[end_index:]
 
     # Portal life line
     portal_line = '| '
     for portal in info['portals']:
-        portal_side_length = side_length[info['portals'].index(portal)]
+        portal_side_length = 40
         p_life = portal['life']
         offset = 0
         if p_life < 10:
@@ -350,7 +320,7 @@ def show_information(info, players, ships_ingame):
     ore_line = '| '
     total_recolted_line = '| '
     for player in players:
-        ore_side_length = side_length[list(players.keys()).index(player)]
+        ore_side_length = 40
         current_ore = players[player]['ore']
         total_recolted = players[player]['total_recolted']
         offset_ore = 0
@@ -377,15 +347,14 @@ def show_information(info, players, ships_ingame):
             ore_line += '|'
             total_recolted_line += '|'
 
-    ships_name_line = ships_name_line[:-1] + '|'
     print('-' * current_length)
     print(name_line)
-    print(get_separator_line('=', side_length))
+    print(get_separator_line('=', 39))
     print(portal_line)
     print(ore_line)
     print(total_recolted_line)
-    print(get_separator_line('-', side_length))
-    print(ships_name_line)
+    print(get_separator_line('-', 39))
+    print('| Name   | Type | Pos  | Life | Ore     : Name   | Type  | Pos  | Life | Ore    |')
 
 
 def get_separator_line(separator, side_length):
@@ -395,7 +364,7 @@ def get_separator_line(separator, side_length):
     Parameters
     ----------
     separator: the character of the separator (str)
-    side_length: the length of both sides (list)
+    side_length: the length of both sides (int)
 
     Returns
     -------
@@ -407,7 +376,7 @@ def get_separator_line(separator, side_length):
     implementation: Thomas Blanchy (v.1 24/04/2018)
     """
 
-    line = '[%s:%s]' % (separator * (side_length[0] - 1), separator * (side_length[1] - 1))
+    line = '[%s:%s]' % (separator * side_length, separator * side_length)
     return line
 
 #
