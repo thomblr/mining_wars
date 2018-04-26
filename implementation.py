@@ -71,6 +71,10 @@ def start_game(config_name, player_types):
     game_board['portals'] = load_portals(info)
     game_board['asteroids'] = load_asteroids(info)
     game_board['empty_round_left'] = 50
+    game_board['total_ore_on_board'] = 0
+
+    for asteroid in game_board['asteroids']:
+        game_board['total_ore_on_board'] += asteroid['ore']
 
     # Create names for the players
     for player in player_types:
@@ -1450,7 +1454,7 @@ def get_closest_asteroid(info, position):
     current_distance = -1
 
     for asteroid in info['asteroids']:
-        if asteroid['ore'] > 0.1:
+        if asteroid['ore'] > 0.01:
             asteroid_pos = asteroid['position']
             distance = abs(position[0] - asteroid_pos[0]) + abs(position[1] - asteroid_pos[1])
 
