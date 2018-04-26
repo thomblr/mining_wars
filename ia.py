@@ -77,6 +77,54 @@ def ia(name, info, players, ships_ingame, ships_type):
                             player_ore -= ships_type[ship_type]['cost']
 
     # Move orders
+    space_left = ships_type[ships_ingame[name]['type']]['tonnage'] - ships_ingame[name]['ore']
+    current_pos = ships_ingame[name]['position']
+
+    if ships_ingame[name]['type'] in ['Excavator-S', 'Excavator-M', 'Excavator-L']:
+        if space_left > 0.01:
+            closest_asteroid = get_closest_asteroid(info, current_pos)
+
+            # Compute X move
+            x_move = 0
+            if closest_asteroid['position'][0] > current_pos[0]:
+                x_move = 1
+            elif closest_asteroid['position'][0] < current_pos[0]:
+                x_move = -1
+
+            # Compute Y move
+            y_move = 0
+            if closest_asteroid['position'][1] > current_pos[1]:
+                y_move = 1
+            elif closest_asteroid['position'][1] < current_pos[1]:
+                y_move = -1
+
+            new_pos_r = current_pos[0] + x_move
+            new_pos_c = current_pos[1] + y_move
+        else:
+            owner_name = get_player_from_ship(name, players)
+            portal_pos = get_portal_from_player(owner_name, players, info)
+
+            # Compute X move
+            x_move = 0
+            if portal_pos['position'][0] > current_pos[0]:
+                x_move = 1
+            elif portal_pos['position'][0] < current_pos[0]:
+                x_move = -1
+
+            # Compute Y move
+            y_move = 0
+            if portal_pos['position'][1] > current_pos[1]:
+                y_move = 1
+            elif portal_pos['position'][1] < current_pos[1]:
+                y_move = -1
+
+            new_pos_r = current_pos[0] + x_move
+            new_pos_c = current_pos[1] + y_move
+    else:
+        new_pos_r = current_pos[0]
+        new_pos_c = current_pos[1]
+
+    orders.append('%s:@%d-%d' % (name, new_pos_r, new_pos_c))
 
     # Attack orders
 
