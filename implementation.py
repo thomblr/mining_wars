@@ -301,6 +301,49 @@ def show_information(info, players, ships_ingame):
         end_index = start_index + name_length
         name_line = name_line[:start_index] + player + name_line[end_index:]
 
+    # Build ships info lines
+    ships_lines = []
+    current_index = 0
+    len_player_ships = []
+    for player in players:
+        len_player_ships.append(len(players[player]['ships']))
+
+    current_max = -1
+    for value in len_player_ships:
+        if value > current_max or current_max == -1:
+            current_max = value
+
+    while current_index < current_max:
+        ship_info_line = '|'
+        for player in players:
+            if current_index < len(players[player]['ships']):
+                ship = players[player]['ships'][current_index]
+                ship_info = ships_ingame[ship]
+
+                ship_type = str(ship_info['type'])
+                if ship_type.startswith('E'):
+                    ship_type = ship_type[0] + ship_type[-2:]
+                else:
+                    ship_type = ship_type[0]
+
+                ship_pos = '(%d,%d)' % (ship_info['position'][0], ship_info['position'][1])
+
+                ship_ore = ''
+                if ship_type.startswith('E'):
+                    ship_ore += '%.1f' % ship_info['ore']
+
+                ship_info_line += ' %s | %s |%s| %s | %s :' % \
+                                  (ship + (' ' * (9 - len(ship))),
+                                   ship_type + (' ' * (4 - len(ship_type))),
+                                   ship_pos + (' ' * (7 - len(ship_pos))),
+                                   str(ship_info['life']) + (' ' * (4 - len(str(ship_info['life'])))),
+                                   ship_ore + (' ' * (3 - len(ship_ore))))
+            else:
+                ship_info_line += '           |      |       |      |     :'
+
+        ships_lines.append(ship_info_line)
+        current_index += 1
+
     # Portal life line
     portal_line = '| '
     for portal in info['portals']:
@@ -356,7 +399,9 @@ def show_information(info, players, ships_ingame):
     print(ore_line)
     print(total_recolted_line)
     print(get_separator_line('-', 39))
-    print('| Name   | Type | Pos  | Life | Ore     : Name   | Type  | Pos  | Life | Ore    |')
+    print('| Name      | Type | Pos   | Life | Ore : Name      | Type | Pos   | Life | Ore |')
+    for ship_line in ships_lines:
+        print(ship_line)
 
 
 def get_separator_line(separator, side_length):

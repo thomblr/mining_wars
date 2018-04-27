@@ -16,9 +16,9 @@ Passage du fichier game.txt -> structures de données :
 | Current Ore : 10                      : Current Ore : 45                      |
 | Total Recolted : 15                   : Total Recolted : 60                   |
 [---------------------------------------:---------------------------------------]
-| Name   | Type | Pos  | Life | Ore     : Name   | Type  | Pos  | Life | Ore    |
-| tom#1  | E-M  |(17,4)| 5    | 0       : ia#34  |       |      |      |        |
-| tom#2  | E-S  |(4,7) | 3    | 1       : ia#98  |       |      |      |        |
+| Name      | Type | Pos   | Life | Ore : Name      | Type  | Pos  | Life | Ore |
+| tom#1     | E-M  |(17,40)| 5    | 0   : ia#34     |       |      |      |     |
+| tom#2     | E-S  |(4,7)  | 3    | 1   : ia#98     |       |      |      |     |
 [---------------------------------------:---------------------------------------]
 [===============================================================================]
 |                                   Asteroids                                   |
