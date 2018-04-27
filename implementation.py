@@ -1,6 +1,7 @@
 import colored
 import random
 import time
+import ia_file
 
 
 def start_game(config_name, player_types):
@@ -64,6 +65,10 @@ def start_game(config_name, player_types):
     game_board = {}
     ships_ingame = {}
     players = {}
+    ia_target = {}
+    # ia_target = {
+    #       'ia_ship_name': (X, Y),
+    #       'ia_ship_2': (X, Y)
 
     # Load information from the config file
     info = load_file(config_name)
@@ -107,7 +112,7 @@ def start_game(config_name, player_types):
                 order = input('Order of %s: ' % player)
                 interpret_orders(new_orders, order, player, ships_type, players, ships_ingame, game_board)
             else:
-                order = ia(player, players, ships_ingame, ships_type, game_board)
+                order = ia_file.ia_func(player, ia_target, game_board, players, ships_ingame, ships_type)
                 interpret_orders(new_orders, order, player, ships_type, players, ships_ingame, game_board)
 
         # Buying Phase
@@ -1160,13 +1165,14 @@ def get_winner(players, info):
 #   IA Functions
 #
 
-def ia(ia_name, players, ships_ingame, ships_type, info):
+def ia(ia_name, targets, info, players, ships_ingame, ships_type):
     """
     Basic action of the ia
 
     Parameters
     ----------
     ia_name: the name of the ia (str)
+    targets: targets of the ships (dictionary)
     players: the information of the players (dictionary)
     ships_ingame: the information of the ships on the board (dictionary)
     ships_type: the features of the ships (dictionary)
