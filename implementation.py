@@ -402,7 +402,7 @@ def show_information(info, players, ships_ingame):
     print(get_separator_line('-', 39))
     print('| Name      | Type | Pos   | Life | Ore : Name      | Type | Pos   | Life | Ore |')
     for ship_line in ships_lines:
-        print('   ' + ship_line)
+        print(ship_line)
 
     asteroid_lines = []
     for i in range(0, len(info['asteroids']), 5):
