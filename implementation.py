@@ -392,16 +392,35 @@ def show_information(info, players, ships_ingame):
             ore_line += '|'
             total_recolted_line += '|'
 
-    print('   ' + '-' * current_length)
-    print('   ' + name_line)
-    print('   ' + get_separator_line('=', 39))
-    print('   ' + portal_line)
-    print('   ' + ore_line)
-    print('   ' + total_recolted_line)
-    print('   ' + get_separator_line('-', 39))
-    print('   | Name      | Type | Pos   | Life | Ore : Name      | Type | Pos   | Life | Ore |')
+    print('-' * current_length)
+    print(name_line)
+    print(get_separator_line('=', 39))
+    print(portal_line)
+    print(ore_line)
+    print(total_recolted_line)
+    print(get_separator_line('-', 39))
+    print('| Name      | Type | Pos   | Life | Ore : Name      | Type | Pos   | Life | Ore |')
     for ship_line in ships_lines:
         print('   ' + ship_line)
+
+    asteroid_lines = []
+    for i in range(0, len(info['asteroids']), 5):
+        asteroid_line = '|'
+        for n in range(i, i + 6):
+            if n < len(info['asteroids']):
+                asteroid = info['asteroids'][n]
+                asteroid_info = '(%d,%d): %d' % (asteroid['position'][0], asteroid['position'][1], asteroid['ore'])
+                asteroid_line += ' %s%s |' % (asteroid_info, ' ' * (11 - len(asteroid_info)))
+            else:
+                asteroid_line += '             |'
+        asteroid_lines.append(asteroid_line)
+
+    print('[%s]' % ('=' * 83))
+    print('|%sAsteroids%s|' % ((' ' * 37), (' ' * 37)))
+    print('[%s]' % ('-' * 83))
+    for a_line in asteroid_lines:
+        print(a_line)
+    print('-' * 85)
 
 
 def get_separator_line(separator, side_length):
