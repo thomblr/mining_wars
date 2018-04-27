@@ -75,7 +75,7 @@ def start_game(config_name, player_types):
     game_board['size'] = load_size(info)
     game_board['portals'] = load_portals(info)
     game_board['asteroids'] = load_asteroids(info)
-    game_board['empty_round_left'] = 50
+    game_board['empty_round_left'] = 1000
     game_board['total_ore_on_board'] = 0
 
     for asteroid in game_board['asteroids']:
@@ -1398,14 +1398,14 @@ def ia(name, targets, info, players, ships_ingame, ships_type):
         if ore_ratio >= 0.8:
             for ship_type in types_of_ship:
                 if ship_type in ['Excavator-S', 'Excavator-M', 'Excavator-L']:
-                    if players[name]['ore'] >= ships_type[ship_type]['cost']:
+                    if player_ore >= ships_type[ship_type]['cost']:
                         if random.random() > 0.5:
                             orders.append('IAs#%d:%s' % (random.randint(0, 999), ship_type))
                             ship_type_to_buy.append(ship_type)
                             player_ore -= ships_type[ship_type]['cost']
         elif ore_ratio >= 0.3:
             for ship_type in types_of_ship:
-                if players[name]['ore'] >= ships_type[ship_type]['cost']:
+                if player_ore >= ships_type[ship_type]['cost']:
                     if random.random() > 0.5 or ship_type == 'Warship':
                         orders.append('IAs#%d:%s' % (random.randint(0, 999), ship_type))
                         ship_type_to_buy.append(ship_type)
@@ -1413,7 +1413,7 @@ def ia(name, targets, info, players, ships_ingame, ships_type):
         else:
             for ship_type in types_of_ship:
                 if ship_type in ['Scout', 'Warship']:
-                    if players[name]['ore'] >= ships_type[ship_type]['cost']:
+                    if player_ore >= ships_type[ship_type]['cost']:
                         if random.random() > 0.5:
                             orders.append('IAs#%d:%s' % (random.randint(0, 999), ship_type))
                             ship_type_to_buy.append(ship_type)
