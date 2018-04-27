@@ -121,6 +121,7 @@ def ia(name, info, players, ships_ingame, ships_type):
             new_pos_r = current_pos[0] + x_move
             new_pos_c = current_pos[1] + y_move
     else:
+        # Handle Attack ships
         new_pos_r = current_pos[0]
         new_pos_c = current_pos[1]
 
