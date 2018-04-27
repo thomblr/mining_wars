@@ -1,7 +1,6 @@
 import colored
 import random
 import time
-import math
 
 
 def start_game(config_name, player_types):
@@ -82,12 +81,14 @@ def start_game(config_name, player_types):
         game_board['total_ore_on_board'] += asteroid['ore']
 
     # Create names for the players
+    id_player = 0
     for player in player_types:
         if player == 'human':
-            name = input('Name of the player %d ? (unique)' % (player_types.index(player) + 1))
+            name = input('Name of the player %d ? (unique)' % id_player)
         else:
-            print('Random name for player %d ...' % (player_types.index(player) + 1))
+            print('Random name for player %d ...' % id_player)
             name = 'IA#%d' % random.randint(0, 999)
+        id_player += 1
 
         players[name] = {}
         players[name]['type'] = player
@@ -1427,10 +1428,10 @@ def ia(name, targets, info, players, ships_ingame, ships_type):
 
     # Move orders
     for ship in players[name]['ships']:
-        space_left = ships_type[ships_ingame[ship]['type']]['tonnage'] - ships_ingame[ship]['ore']
         current_pos = ships_ingame[ship]['position']
 
         if ships_ingame[ship]['type'] in ['Excavator-S', 'Excavator-M', 'Excavator-L']:
+            space_left = ships_type[ships_ingame[ship]['type']]['tonnage'] - ships_ingame[ship]['ore']
             if space_left > 0.01:
                 closest_asteroid = get_closest_asteroid(info, current_pos)
 
@@ -1478,8 +1479,8 @@ def ia(name, targets, info, players, ships_ingame, ships_type):
                 for player in players:
                     if ship not in players[player]['ships']:
                         portal = get_portal_from_player(player, players, info)
-                        r_diff = abs(portal['position'][0] - ships_ingame[name]['position'][0])
-                        c_diff = abs(portal['position'][1] - ships_ingame[name]['position'][1])
+                        r_diff = abs(portal['position'][0] - ships_ingame[ship]['position'][0])
+                        c_diff = abs(portal['position'][1] - ships_ingame[ship]['position'][1])
 
                         if r_diff + c_diff > 5:
                             # Compute X move
@@ -1498,7 +1499,7 @@ def ia(name, targets, info, players, ships_ingame, ships_type):
 
                             new_pos_r = current_pos[0] + x_move
                             new_pos_c = current_pos[1] + y_move
-                            orders.append('%s:@%d-%d' % (name, new_pos_r, new_pos_c))
+                            orders.append('%s:@%d-%d' % (ship, new_pos_r, new_pos_c))
             else:
                 if ship in targets:
                     r_diff = abs(targets[ship][0] - ships_ingame[ship]['position'][0])
