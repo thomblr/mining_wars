@@ -341,6 +341,7 @@ def show_information(info, players, ships_ingame):
             else:
                 ship_info_line += '           |      |       |      |     :'
 
+        ship_info_line = ship_info_line[:-1] + '|'
         ships_lines.append(ship_info_line)
         current_index += 1
 
