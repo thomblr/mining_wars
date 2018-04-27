@@ -284,10 +284,6 @@ def show_information(info, players, ships_ingame):
     implementation: Thomas Blanchy (v.1 23/04/2018)
     """
 
-    print(info)
-    print(players)
-    print(ships_ingame)
-
     current_length = 81
 
     # Player name line
