@@ -1,6 +1,7 @@
 import colored
 import random
 import time
+import math
 
 
 def start_game(config_name, player_types):
@@ -421,8 +422,18 @@ def show_information(info, players, ships_ingame):
                 asteroid_line += '             |'
         asteroid_lines.append(asteroid_line)
 
+    ore_started = info['total_ore_on_board']
+    current_ore = 0
+    for asteroid in info['asteroids']:
+        current_ore += asteroid['ore']
+    ore_ratio = current_ore / ore_started
+
+    asteroid_title = 'Asteroids - %.2f%s of Ore' % (ore_ratio * 100, '%')
+
     print('[%s]' % ('=' * 83))
-    print('|%sAsteroids%s|' % ((' ' * 37), (' ' * 37)))
+    print('|%s%s%s|' % ((' ' * (int(math.floor((83 - len(asteroid_title)) / 2)))),
+                        asteroid_title,
+                        (' ' * (int(math.ceil((83 - len(asteroid_title)) / 2))))))
     print('[%s]' % ('-' * 83))
     for a_line in asteroid_lines:
         print(a_line)
