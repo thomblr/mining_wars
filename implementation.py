@@ -1453,9 +1453,7 @@ def ia(name, targets, info, players, ships_ingame, ships_type):
 
         for ship in ships_to_buy:
             if ship[1] == 'Scout':
-                # Find best asteroid to attack
-                best_asteroid = dict(find_best_asteroid_to_attack(name, info, targets, players))
-                targets[ship[0]] = [best_asteroid['position'][0], best_asteroid['position'][1]]
+                set_scout_target(name, ship, targets, info, players)
 
     # Move orders
     for ship in players[name]['ships']:
@@ -1558,6 +1556,23 @@ def ia(name, targets, info, players, ships_ingame, ships_type):
     # Attack orders
 
     return ' '.join(orders)
+
+
+def set_scout_target(owner_name, ship, targets, info, players):
+    ore_started = info['total_ore_on_board']
+    current_ore = 0
+    for asteroid in info['asteroids']:
+        current_ore += asteroid['ore']
+    ore_ratio = current_ore / ore_started
+
+    if ore_ratio > 0.1:  # Still some ore left -> Target ships on asteroids
+        # Find best asteroid to attack
+        best_asteroid = dict(find_best_asteroid_to_attack(owner_name, info, targets, players))
+        targets[ship[0]] = [best_asteroid['position'][0], best_asteroid['position'][1]]
+    else:  # Target enemy portal
+        player_index = list(players.keys()).index(owner_name)
+        enemy_portal = info['portals'][0 if player_index == 1 else 1]
+        targets[ship[0]] = [enemy_portal['position'][0], enemy_portal['position'][1]]
 
 
 def find_best_asteroid_to_attack(player, info, targets, players):
@@ -1809,4 +1824,4 @@ def check_range(attacker, target_pos, ships_ingame, ships_type):
     return distance <= ships_type[attacker_ship['type']]['range']
 
 
-start_game('game_2.txt', ['human', 'ia'])
+start_game('game_2.txt', ['ia', 'ia'])
