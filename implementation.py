@@ -538,7 +538,7 @@ def move_ship(orders, ships_ingame):
         ships_ingame[ship_name]['position'] = new_position
 
 
-def attack_ship(orders, info, ships_ingame, ships_type, players):
+def attack_ship(orders, info, ships_ingame, ships_type, players, ships_structure):
     """
     Launch an attack based on the ship concerned.
 
@@ -549,6 +549,7 @@ def attack_ship(orders, info, ships_ingame, ships_type, players):
     ships_ingame: the information of the ships on the board (dictionary)
     ships_type: the features of the ships (dictionary)
     players: the information of the players (dictionary)
+    ships_structure: the structure of the ships (dictionary)
 
     Returns
     -------
@@ -568,17 +569,26 @@ def attack_ship(orders, info, ships_ingame, ships_type, players):
 
         # Check portal damage
         for portal in info['portals']:
-            if target_pos == portal['position']:
-                damage = ships_type[ships_ingame[ship_name]['type']]['attack']
-                portal['life'] -= damage
-                is_damage = True
+            portal_structure = [(-2, -2), (-2, -1), (-2, 0), (-2, 1), (-2, 2),
+                                (-1, -2), (-1, -1), (-1, 0), (-1, 1), (-1, 2),
+                                (0, -2), (0, -1), (0, 0), (0, 1), (0, 2),
+                                (1, -2), (1, -1), (1, 0), (1, 1), (1, 2),
+                                (2, -2), (2, -1), (2, 0), (2, 1), (2, 2)]
+
+            for p_pos in portal_structure:
+                if target_pos[0] == p_pos[0] and target_pos[1] == p_pos[1]:
+                    damage = ships_type[ships_ingame[ship_name]['type']]['attack']
+                    portal['life'] -= damage
+                    is_damage = True
 
         # Check ship damage
         for ship in ships_ingame:
-            if target_pos == ships_ingame[ship]['position']:
-                damage = ships_type[ships_ingame[ship_name]['type']]['attack']
-                ships_ingame[ship]['life'] -= damage
-                is_damage = True
+            ship_structure = ships_structure[ships_ingame[ship]['type']]
+            for s_ship in ship_structure:
+                if target_pos[0] == s_ship[0] and target_pos[1] == s_ship[1]:
+                    damage = ships_type[ships_ingame[ship_name]['type']]['attack']
+                    ships_ingame[ship]['life'] -= damage
+                    is_damage = True
 
         # Remove dead ships
         for i in range(len(ships_ingame) - 1, -1, -1):
