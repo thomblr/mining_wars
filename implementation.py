@@ -298,13 +298,19 @@ def show_information(info, players, ships_ingame):
     # Player name line
     name_line = '|%s:%s|' % ((' ' * 39), (' ' * 39))
     for player in players:
+        ship_colors = [1, 21]
+        owner_index = list(players.keys()).index(player)
+        color = colored.fg(ship_colors[owner_index])
+        player_name = color + player + colored.attr('reset')
+
         start = 0
         if list(players.keys()).index(player) == 1:
-            start = 41
+            start = (41 - len(player)) + len(player_name)
+
         name_length = len(player)
         start_index = start + int((((current_length - 3) / 2) - name_length) / 2)
         end_index = start_index + name_length
-        name_line = name_line[:start_index] + player + name_line[end_index:]
+        name_line = name_line[:start_index] + player_name + name_line[end_index:]
 
     # Build ships info lines
     ships_lines = []
