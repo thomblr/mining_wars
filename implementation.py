@@ -577,7 +577,8 @@ def attack_ship(orders, info, ships_ingame, ships_type, players, ships_structure
                                 (2, -2), (2, -1), (2, 0), (2, 1), (2, 2)]
 
             for p_pos in portal_structure:
-                if target_pos[0] == p_pos[0] and target_pos[1] == p_pos[1]:
+                portal_pos = portal['position']
+                if target_pos[0] == portal_pos[0] + p_pos[0] and target_pos[1] == portal_pos[1] + p_pos[1]:
                     damage = ships_type[ships_ingame[ship_name]['type']]['attack']
                     portal['life'] -= damage
                     is_damage = True
@@ -586,7 +587,8 @@ def attack_ship(orders, info, ships_ingame, ships_type, players, ships_structure
         for ship in ships_ingame:
             ship_structure = ships_structure[ships_ingame[ship]['type']]
             for s_ship in ship_structure:
-                if target_pos[0] == s_ship[0] and target_pos[1] == s_ship[1]:
+                ship_pos = ships_ingame[ship]['position']
+                if target_pos[0] == ship_pos[0] + s_ship[0] and target_pos[1] == ship_pos[1] + s_ship[1]:
                     damage = ships_type[ships_ingame[ship_name]['type']]['attack']
                     ships_ingame[ship]['life'] -= damage
                     is_damage = True
