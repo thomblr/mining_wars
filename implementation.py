@@ -99,7 +99,7 @@ def start_game(config_name, player_types):
     no_damage_in_the_round = True
 
     while check_end_game(game_board, no_damage_in_the_round):
-        time.sleep(1)
+        time.sleep(.5)
         new_orders = {
             'buy_orders': [],
             'lock_orders': [],
@@ -135,6 +135,7 @@ def start_game(config_name, player_types):
         # Show board & information
         draw_board(game_board, ships_ingame, ships_structure, players)
         show_information(game_board, players, ships_ingame)
+        print(ia_target)
 
     end_game(players, game_board)
     print('Game Over!')
@@ -1383,8 +1384,8 @@ def ia(name, targets, info, players, ships_ingame, ships_type):
     # Buy orders
     player_ore = int(players[name]['ore'])
     if not players[name]['ships'] and player_ore == 4:
-        orders.append('IAs%d:Excavator-M' % random.randint(0, 999))
-        orders.append('IAs%d:Excavator-M' % random.randint(0, 999))
+        orders.append('IAs#%d:Excavator-M' % random.randint(0, 999))
+        orders.append('IAs#%d:Excavator-M' % random.randint(0, 999))
     else:
         types_of_ship = list(ships_type.keys())
         random.shuffle(types_of_ship)
@@ -1394,7 +1395,7 @@ def ia(name, targets, info, players, ships_ingame, ships_type):
             current_ore += asteroid['ore']
         ore_ratio = current_ore / ore_started
 
-        ship_type_to_buy = []
+        ships_to_buy = []
 
         if ore_ratio >= 0.8:
             for ship_type in types_of_ship:
@@ -1402,29 +1403,30 @@ def ia(name, targets, info, players, ships_ingame, ships_type):
                     if player_ore >= ships_type[ship_type]['cost']:
                         if random.random() > 0.5:
                             orders.append('IAs#%d:%s' % (random.randint(0, 999), ship_type))
-                            ship_type_to_buy.append(ship_type)
                             player_ore -= ships_type[ship_type]['cost']
         elif ore_ratio >= 0.3:
             for ship_type in types_of_ship:
                 if player_ore >= ships_type[ship_type]['cost']:
                     if random.random() > 0.5 or ship_type == 'Warship':
-                        orders.append('IAs#%d:%s' % (random.randint(0, 999), ship_type))
-                        ship_type_to_buy.append(ship_type)
+                        ship_name = 'IAs#%d' % random.randint(0, 999)
+                        orders.append('%s:%s' % (ship_name, ship_type))
+                        ships_to_buy.append((ship_name, ship_type))
                         player_ore -= ships_type[ship_type]['cost']
         else:
             for ship_type in types_of_ship:
                 if ship_type in ['Scout', 'Warship']:
                     if player_ore >= ships_type[ship_type]['cost']:
                         if random.random() > 0.5:
-                            orders.append('IAs#%d:%s' % (random.randint(0, 999), ship_type))
-                            ship_type_to_buy.append(ship_type)
+                            ship_name = 'IAs#%d' % random.randint(0, 999)
+                            orders.append('%s:%s' % (ship_name, ship_type))
+                            ships_to_buy.append((ship_name, ship_type))
                             player_ore -= ships_type[ship_type]['cost']
 
-        for ship_type in ship_type_to_buy:
-            if ship_type == 'Scout':
+        for ship in ships_to_buy:
+            if ship[1] == 'Scout':
                 # Find best asteroid to attack
-                best_asteroid = dict(find_best_asteroid_to_attack(info))
-                targets[name] = [best_asteroid['position'][0], best_asteroid['position'][1]]
+                best_asteroid = dict(find_best_asteroid_to_attack(name, info, targets, players))
+                targets[ship[0]] = [best_asteroid['position'][0], best_asteroid['position'][1]]
 
     # Move orders
     for ship in players[name]['ships']:
@@ -1503,7 +1505,7 @@ def ia(name, targets, info, players, ships_ingame, ships_type):
             else:
                 if ship in targets:
                     r_diff = abs(targets[ship][0] - ships_ingame[ship]['position'][0])
-                    c_diff = abs(targets[ship][0] - ships_ingame[ship]['position'][1])
+                    c_diff = abs(targets[ship][1] - ships_ingame[ship]['position'][1])
 
                     if r_diff + c_diff > 3:
                         # Compute X move
@@ -1529,10 +1531,25 @@ def ia(name, targets, info, players, ships_ingame, ships_type):
     return ' '.join(orders)
 
 
-def find_best_asteroid_to_attack(info):
+def find_best_asteroid_to_attack(player, info, targets, players):
     current_max = -1
     best_asteroid = ''
-    for asteroid in info['asteroids']:
+
+    new_list_asteroids = []
+    if len(targets) > 0:
+        for asteroid in info['asteroids']:
+            a_pos = asteroid['position']
+            can_be_targeted = True
+            for target in targets:
+                t_pos = targets[target]
+                if t_pos[0] == a_pos[0] and t_pos[1] == a_pos[1] and target in players[player]['ships']:
+                    can_be_targeted = False
+            if can_be_targeted:
+                new_list_asteroids.append(asteroid)
+    else:
+        new_list_asteroids = info['asteroids']
+
+    for asteroid in new_list_asteroids:
         if asteroid['ore'] > current_max or asteroid['ore'] == -1:
             current_max = asteroid['ore']
             best_asteroid = asteroid
