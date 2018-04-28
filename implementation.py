@@ -1459,100 +1459,52 @@ def ia(name, targets, info, players, ships_ingame, ships_type):
     # Move orders
     for ship in players[name]['ships']:
         current_pos = ships_ingame[ship]['position']
+        target_position = []
 
         if ships_ingame[ship]['type'] in ['Excavator-S', 'Excavator-M', 'Excavator-L']:
             space_left = ships_type[ships_ingame[ship]['type']]['tonnage'] - ships_ingame[ship]['ore']
             if space_left > 0.01:
                 closest_asteroid = get_closest_asteroid(info, current_pos)
-
-                # Compute X move
-                x_move = 0
-                if closest_asteroid['position'][0] > current_pos[0]:
-                    x_move = 1
-                elif closest_asteroid['position'][0] < current_pos[0]:
-                    x_move = -1
-
-                # Compute Y move
-                y_move = 0
-                if closest_asteroid['position'][1] > current_pos[1]:
-                    y_move = 1
-                elif closest_asteroid['position'][1] < current_pos[1]:
-                    y_move = -1
-
-                new_pos_r = current_pos[0] + x_move
-                new_pos_c = current_pos[1] + y_move
-                orders.append('%s:@%d-%d' % (ship, new_pos_r, new_pos_c))
+                target_position = [closest_asteroid['position'][0], closest_asteroid['position'][1]]
             else:
                 owner_name = get_player_from_ship(ship, players)
                 portal_pos = get_portal_from_player(owner_name, players, info)
-
-                # Compute X move
-                x_move = 0
-                if portal_pos['position'][0] > current_pos[0]:
-                    x_move = 1
-                elif portal_pos['position'][0] < current_pos[0]:
-                    x_move = -1
-
-                # Compute Y move
-                y_move = 0
-                if portal_pos['position'][1] > current_pos[1]:
-                    y_move = 1
-                elif portal_pos['position'][1] < current_pos[1]:
-                    y_move = -1
-
-                new_pos_r = current_pos[0] + x_move
-                new_pos_c = current_pos[1] + y_move
-                orders.append('%s:@%d-%d' % (ship, new_pos_r, new_pos_c))
+                target_position = [portal_pos['position'][0], portal_pos['position'][1]]
         else:
             # Handle Attack ships
             if ships_ingame[ship]['type'] == 'Warship':
                 for player in players:
                     if ship not in players[player]['ships']:
                         portal = get_portal_from_player(player, players, info)
-                        r_diff = abs(portal['position'][0] - ships_ingame[ship]['position'][0])
-                        c_diff = abs(portal['position'][1] - ships_ingame[ship]['position'][1])
-
-                        if r_diff + c_diff > 5:
-                            # Compute X move
-                            x_move = 0
-                            if portal['position'][0] > current_pos[0]:
-                                x_move = 1
-                            elif portal['position'][0] < current_pos[0]:
-                                x_move = -1
-
-                            # Compute Y move
-                            y_move = 0
-                            if portal['position'][1] > current_pos[1]:
-                                y_move = 1
-                            elif portal['position'][1] < current_pos[1]:
-                                y_move = -1
-
-                            new_pos_r = current_pos[0] + x_move
-                            new_pos_c = current_pos[1] + y_move
-                            orders.append('%s:@%d-%d' % (ship, new_pos_r, new_pos_c))
+                        target_position = [portal['position'][0], portal['position'][1]]
             else:
                 if ship in targets:
-                    r_diff = abs(targets[ship][0] - ships_ingame[ship]['position'][0])
-                    c_diff = abs(targets[ship][1] - ships_ingame[ship]['position'][1])
+                    target_position = [targets[ship][0], targets[ship][1]]
 
-                    if r_diff + c_diff > 3:
-                        # Compute X move
-                        x_move = 0
-                        if targets[ship][0] > current_pos[0]:
-                            x_move = 1
-                        elif targets[ship][0] < current_pos[0]:
-                            x_move = -1
+        ship_type = ships_ingame[ship]['type']
+        r_diff = abs(target_position[0] - ships_ingame[ship]['position'][0])
+        c_diff = abs(target_position[1] - ships_ingame[ship]['position'][1])
 
-                        # Compute Y move
-                        y_move = 0
-                        if targets[ship][1] > current_pos[1]:
-                            y_move = 1
-                        elif targets[ship][1] < current_pos[1]:
-                            y_move = -1
+        if (ship_type == 'Warship' and r_diff + c_diff > 5) or \
+                (ship_type == 'Scout' and r_diff + c_diff > 3) or \
+                ship_type in ['Excavator-S', 'Excavator-M', 'Excavator-L']:
+            # Compute X move
+            x_move = 0
+            if target_position[0] > current_pos[0]:
+                x_move = 1
+            elif target_position[0] < current_pos[0]:
+                x_move = -1
 
-                        new_pos_r = current_pos[0] + x_move
-                        new_pos_c = current_pos[1] + y_move
-                        orders.append('%s:@%d-%d' % (ship, new_pos_r, new_pos_c))
+            # Compute Y move
+            y_move = 0
+            if target_position[1] > current_pos[1]:
+                y_move = 1
+            elif target_position[1] < current_pos[1]:
+                y_move = -1
+
+            new_pos_r = current_pos[0] + x_move
+            new_pos_c = current_pos[1] + y_move
+            orders.append('%s:@%d-%d' % (ship, new_pos_r, new_pos_c))
 
     # Attack orders
 
