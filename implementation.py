@@ -1642,7 +1642,7 @@ def get_player_from_ship(ship_name, players):
             return player
 
 
-def is_locked(ship_name, info):
+def is_locked(ship_name, info, ships_ingame):
     """
     Check if a ship is locked
 
@@ -1650,6 +1650,7 @@ def is_locked(ship_name, info):
     ----------
     ship_name: the name of the ship (str)
     info: the data structure with the portals and the asteroids (dictionary)
+    ships_ingame: the ships on the board (dictionary)
 
     Returns
     -------
@@ -1660,7 +1661,7 @@ def is_locked(ship_name, info):
     specification: Joaquim Peremans (v.1 15/04/2018)
     implementation: Joaquim Peremans (v.1 15/04/2018)
     """
-    if ship_name in ['Excavator-S', 'Excavator-M', 'Excavator-L']:
+    if ships_ingame[ship_name]['type'] in ['Excavator-S', 'Excavator-M', 'Excavator-L']:
         for asteroid in info['asteroids']:
             if ship_name in asteroid['ships_locked']:
                 return True
