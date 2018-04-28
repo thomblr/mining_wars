@@ -1457,13 +1457,20 @@ def ia(name, targets, info, players, ships_ingame, ships_type):
                 set_scout_target(name, ship, targets, info, players)
 
     # Move orders
+    current_ore = 0
+    for asteroid in info['asteroids']:
+        current_ore += asteroid['ore']
+
     for ship in players[name]['ships']:
         current_pos = ships_ingame[ship]['position']
         target_position = []
+        current_ore = 0
+        for asteroid in info['asteroids']:
+            current_ore += asteroid['ore']
 
         if ships_ingame[ship]['type'] in ['Excavator-S', 'Excavator-M', 'Excavator-L']:
             space_left = ships_type[ships_ingame[ship]['type']]['tonnage'] - ships_ingame[ship]['ore']
-            if space_left > 0.01:
+            if space_left > 0.01 and current_ore > 0.01:
                 closest_asteroid = get_closest_asteroid(info, current_pos)
                 target_position = [closest_asteroid['position'][0], closest_asteroid['position'][1]]
             else:
@@ -1478,8 +1485,12 @@ def ia(name, targets, info, players, ships_ingame, ships_type):
                         portal = get_portal_from_player(player, players, info)
                         target_position = [portal['position'][0], portal['position'][1]]
             else:
-                if ship in targets:
+                if ship in targets and current_ore > 0.01:
                     target_position = [targets[ship][0], targets[ship][1]]
+                else:
+                    player_index = list(players.keys()).index(name)
+                    enemy_portal = info['portals'][0 if player_index == 1 else 1]
+                    target_position = [enemy_portal['position'][0], enemy_portal['position'][1]]
 
         ship_type = ships_ingame[ship]['type']
         r_diff = abs(target_position[0] - ships_ingame[ship]['position'][0])
@@ -1508,6 +1519,14 @@ def ia(name, targets, info, players, ships_ingame, ships_type):
 
     # Attack orders
 
+    # Update scout target
+    for ship in players[name]['ships']:
+        for asteroid in info['asteroids']:
+            if ship in list(targets.keys()):
+                if targets[ship][0] == asteroid['position'][0] and targets[ship][1] == asteroid['position'][1]:
+                    if asteroid['ore'] < 0.1:
+                        set_scout_target(get_player_from_ship(ship, players), ship, targets, info, players)
+
     return ' '.join(orders)
 
 
@@ -1522,10 +1541,6 @@ def set_scout_target(owner_name, ship, targets, info, players):
         # Find best asteroid to attack
         best_asteroid = dict(find_best_asteroid_to_attack(owner_name, info, targets, players))
         targets[ship[0]] = [best_asteroid['position'][0], best_asteroid['position'][1]]
-    else:  # Target enemy portal
-        player_index = list(players.keys()).index(owner_name)
-        enemy_portal = info['portals'][0 if player_index == 1 else 1]
-        targets[ship[0]] = [enemy_portal['position'][0], enemy_portal['position'][1]]
 
 
 def find_best_asteroid_to_attack(player, info, targets, players):
