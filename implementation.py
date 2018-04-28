@@ -136,7 +136,6 @@ def start_game(config_name, player_types):
         # Show board & information
         draw_board(game_board, ships_ingame, ships_structure, players)
         show_information(game_board, players, ships_ingame)
-        print(ia_target)
 
     end_game(players, game_board)
     print('Game Over!')
