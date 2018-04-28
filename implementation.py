@@ -581,7 +581,7 @@ def attack_ship(orders, info, ships_ingame, ships_type, players):
                 is_damage = True
 
         # Remove dead ships
-        for i in range(len(ships_ingame) - 1, 0, -1):
+        for i in range(len(ships_ingame) - 1, -1, -1):
             ship = list(ships_ingame.keys())[i]
             if ships_ingame[ship]['life'] <= 0:
                 print('The ship %s has been destroyed.' % ship)
@@ -1796,4 +1796,4 @@ def check_range(attacker, target_pos, ships_ingame, ships_type):
     return distance <= ships_type[attacker_ship['type']]['range']
 
 
-start_game('game_2.txt', ['ia', 'ia'])
+start_game('game_2.txt', ['human', 'ia'])
