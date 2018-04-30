@@ -235,14 +235,14 @@ def add_ships_to_board(board, ships, ships_structure, players):
     for ship in ships:
         owner_index = list(players.keys()).index(get_player_from_ship(ship, players))
         color = colored.fg(ship_colors[owner_index])
-        ship_x = ships[ship]['position'][0]
-        ship_y = ships[ship]['position'][1]
+        ship_c = ships[ship]['position'][0]
+        ship_r = ships[ship]['position'][1]
         ship_type = ships[ship]['type']
 
         structure = ships_structure[ship_type]
 
         for pos in structure:  # \u25A0
-            board[ship_x + int(pos[0]) - 1][ship_y + int(pos[1]) - 1] = color + '\u2588' + colored.attr('reset')
+            board[ship_c + int(pos[0]) - 1][ship_r + int(pos[1]) - 1] = color + '\u2588' + colored.attr('reset')
 
 
 def add_asteroids_to_board(board, info):
@@ -265,11 +265,11 @@ def add_asteroids_to_board(board, info):
     """
 
     for asteroid in info['asteroids']:
-        pos_x = asteroid['position'][0]
-        pos_y = asteroid['position'][1]
+        pos_r = asteroid['position'][0]
+        pos_c = asteroid['position'][1]
         ore = asteroid['ore']
         color = colored.fg(2) if ore > 0.1 else colored.fg(15)
-        board[int(pos_x) - 1][int(pos_y) - 1] = color + '\u25D8' + colored.attr('reset')
+        board[int(pos_r) - 1][int(pos_c) - 1] = color + '\u25D8' + colored.attr('reset')
 
 
 def add_portals_to_board(board, info):
@@ -295,11 +295,11 @@ def add_portals_to_board(board, info):
     for portal in info['portals']:
         portal_index = info['portals'].index(portal)
         color = colored.fg(portal_colors[portal_index])
-        pos_x = portal['position'][0]
-        pos_y = portal['position'][1]
+        pos_r = portal['position'][0]
+        pos_c = portal['position'][1]
         for i in range(-2, 3):
             for j in range(-2, 3):  # \u25CC
-                board[int(pos_x) + i - 1][int(pos_y) + j - 1] = color + '\u2591' + colored.attr('reset')
+                board[int(pos_r) + i - 1][int(pos_c) + j - 1] = color + '\u2591' + colored.attr('reset')
 
 
 def show_information(info, players, ships_ingame, minimal):
@@ -1550,18 +1550,18 @@ def ia(name, targets, info, players, ships_ingame, ships_type):
                     target_position = [enemy_portal['position'][0], enemy_portal['position'][1]]
 
         ship_type = ships_ingame[ship]['type']
-        r_diff = target_position[0] - ships_ingame[ship]['position'][0]
-        c_diff = target_position[1] - ships_ingame[ship]['position'][1]
+        r_delta = target_position[0] - ships_ingame[ship]['position'][0]
+        c_delta = target_position[1] - ships_ingame[ship]['position'][1]
 
         # --- Apply movement to the target
         if not check_range(ship, target_position, ships_ingame, ships_type) \
                 or ship_type in ['Excavator-S', 'Excavator-M', 'Excavator-L']:
 
-            x_move = 0 if target_position[0] == current_pos[0] else r_diff / abs(r_diff)
-            y_move = 0 if target_position[1] == current_pos[1] else c_diff / abs(c_diff)
+            r_move = 0 if target_position[0] == current_pos[0] else r_delta / abs(r_delta)
+            c_move = 0 if target_position[1] == current_pos[1] else c_delta / abs(c_delta)
 
-            new_pos_r = current_pos[0] + x_move
-            new_pos_c = current_pos[1] + y_move
+            new_pos_r = current_pos[0] + r_move
+            new_pos_c = current_pos[1] + c_move
             orders.append('%s:@%d-%d' % (ship, new_pos_r, new_pos_c))
 
     # Attack orders
