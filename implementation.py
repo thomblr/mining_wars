@@ -1565,6 +1565,26 @@ def set_scout_target(owner_name, ship, targets, info, players):
 
 
 def find_best_asteroid_to_attack(player, info, targets, players):
+    """
+    Find the best asteroid with the max ores and who's not targeted yet.
+
+    Parameters
+    ----------
+    player: the name of the attacker (str)
+    info: the information of the elements on the board (dictionary)
+    targets: the current targets of the ships (dictionary)
+    players: the information of the players (dictionary)
+
+    Returns
+    -------
+    asteroid: the best asteroid (dictionary)
+
+    Version
+    -------
+    specification: Thomas Blanchy
+    implementation: Thomas Blanchy
+    """
+
     current_max = -1
     best_asteroid = ''
 
