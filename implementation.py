@@ -79,7 +79,7 @@ def start_game(config_name, player_types):
     game_board['size'] = load_size(info)
     game_board['portals'] = load_portals(info)
     game_board['asteroids'] = load_asteroids(info)
-    game_board['empty_round_left'] = 1000
+    game_board['empty_round_left'] = 200
     game_board['total_ore_on_board'] = 0
 
     for asteroid in game_board['asteroids']:
@@ -104,7 +104,7 @@ def start_game(config_name, player_types):
     no_damage_in_the_round = True
 
     while check_end_game(game_board, no_damage_in_the_round):
-        time.sleep(.5)
+        time.sleep(.3)
         new_orders = {
             'buy_orders': [],
             'lock_orders': [],
@@ -206,7 +206,7 @@ def build_empty_board(info, board):
     for i in range(info['size'][0]):
         sub_list = []
         for j in range(info['size'][1]):
-            sub_list.append('\u25A1')
+            sub_list.append('\u2591')  # \u25A1
         board.append(sub_list)
 
 
@@ -241,8 +241,8 @@ def add_ships_to_board(board, ships, ships_structure, players):
 
         structure = ships_structure[ship_type]
 
-        for pos in structure:
-            board[ship_x + int(pos[0]) - 1][ship_y + int(pos[1]) - 1] = color + '\u25A0' + colored.attr('reset')
+        for pos in structure:  # \u25A0
+            board[ship_x + int(pos[0]) - 1][ship_y + int(pos[1]) - 1] = color + '\u2588' + colored.attr('reset')
 
 
 def add_asteroids_to_board(board, info):
@@ -298,8 +298,8 @@ def add_portals_to_board(board, info):
         pos_x = portal['position'][0]
         pos_y = portal['position'][1]
         for i in range(-2, 3):
-            for j in range(-2, 3):
-                board[int(pos_x) + i - 1][int(pos_y) + j - 1] = color + '\u25CC' + colored.attr('reset')
+            for j in range(-2, 3):  # \u25CC
+                board[int(pos_x) + i - 1][int(pos_y) + j - 1] = color + '\u2591' + colored.attr('reset')
 
 
 def show_information(info, players, ships_ingame):
@@ -1323,7 +1323,7 @@ def check_end_game(info, damage):
     if damage:
         info['empty_round_left'] -= 1
     else:
-        info['empty_round_left'] = 50
+        info['empty_round_left'] = 200
     if info['empty_round_left'] == 0:
         return False
     for portal in info['portals']:
@@ -1548,26 +1548,16 @@ def ia(name, targets, info, players, ships_ingame, ships_type):
                     target_position = [enemy_portal['position'][0], enemy_portal['position'][1]]
 
         ship_type = ships_ingame[ship]['type']
-        r_diff = abs(target_position[0] - ships_ingame[ship]['position'][0])
-        c_diff = abs(target_position[1] - ships_ingame[ship]['position'][1])
+        r_diff = target_position[0] - ships_ingame[ship]['position'][0]
+        c_diff = target_position[1] - ships_ingame[ship]['position'][1]
 
         # --- Apply movement to the target
-        if (ship_type == 'Warship' and r_diff + c_diff > 5) or \
-                (ship_type == 'Scout' and r_diff + c_diff > 3) or \
+        if (ship_type == 'Warship' and abs(r_diff) + abs(c_diff) > 5) or \
+                (ship_type == 'Scout' and abs(r_diff) + abs(c_diff) > 3) or \
                 ship_type in ['Excavator-S', 'Excavator-M', 'Excavator-L']:
-            # Compute X move
-            x_move = 0
-            if target_position[0] > current_pos[0]:
-                x_move = 1
-            elif target_position[0] < current_pos[0]:
-                x_move = -1
 
-            # Compute Y move
-            y_move = 0
-            if target_position[1] > current_pos[1]:
-                y_move = 1
-            elif target_position[1] < current_pos[1]:
-                y_move = -1
+            x_move = 0 if target_position[0] == current_pos[0] else r_diff / abs(r_diff)
+            y_move = 0 if target_position[1] == current_pos[1] else c_diff / abs(c_diff)
 
             new_pos_r = current_pos[0] + x_move
             new_pos_c = current_pos[1] + y_move
