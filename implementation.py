@@ -13,6 +13,10 @@ def start_game(config_name, player_types):
     config_name: the name of the file configuration (str)
     player_types: the types of the players (list)
 
+    Returns
+    -------
+    None
+
     Version
     -------
     specification: Thomas Blanchy (v.2 09/03/2018)
@@ -158,6 +162,10 @@ def draw_board(info, ships, ships_structure, players):
     ships_structure: the structure of the ships (dictionary)
     players: the information of the players (dictionary)
 
+    Returns
+    -------
+    None
+
     Version
     -------
     specification: Joaquim Peremans (v.1 05/03/2018)
@@ -185,6 +193,10 @@ def build_empty_board(info, board):
     info: all the information of the game (dictionary)
     board: the current game board (list)
 
+    Returns
+    -------
+    None
+
     Version
     -------
     specification: Joaquim Peremans (v.1 15/04/2018)
@@ -208,6 +220,10 @@ def add_ships_to_board(board, ships, ships_structure, players):
     ships: the ships in game (dictionary)
     ships_structure: the structure of the ships (dictionary)
     players: the information of the players (dictionary)
+
+    Returns
+    -------
+    None
 
     Version
     -------
@@ -238,6 +254,10 @@ def add_asteroids_to_board(board, info):
     board: the current game board (list)
     info: the data structure with the asteroids (dictionary)
 
+    Returns
+    -------
+    None
+
     Version
     -------
     specification: Joaquim Peremans (v.1 05/03/2018)
@@ -260,6 +280,10 @@ def add_portals_to_board(board, info):
     ----------
     board: the current game board (list)
     info: the data structure with the portals (dictionary)
+
+    Returns
+    -------
+    None
 
     Version
     -------
@@ -287,6 +311,10 @@ def show_information(info, players, ships_ingame):
     info: the data structure with the asteroids and the portals (dictionary)
     players: the information of the players (dictionary)
     ships_ingame: the information of the ships on the board (dictionary)
+
+    Returns
+    -------
+    None
 
     Version
     -------
@@ -485,6 +513,10 @@ def buy_ships(orders, players, ships_ingame, ships_type, info):
     ships_type: the features of the ships (dictionary)
     info: the data structure with the portals and the asteroids (dictionary)
 
+    Returns
+    -------
+    None
+
     Version
     -------
     specification: Joaquim Peremans (v.1 05/03/2018)
@@ -524,6 +556,10 @@ def move_ship(orders, ships_ingame):
     ----------
     orders: the move orders of the round (list)
     ships_ingame: the information of the ships on the board (dictionary)
+
+    Returns
+    -------
+    None
 
     Version
     -------
@@ -635,6 +671,10 @@ def collect_ores(info, ships_ingame, players, ships_type):
     players: the information of the players (dictionary)
     ships_type: the features of the ships (dictionary)
 
+    Returns
+    -------
+    None
+
     Version
     -------
     specification: Thomas Blanchy (v.2 09/03/2018)
@@ -733,6 +773,10 @@ def lock_ship(orders, info, ships_ingame, players):
     ships_ingame: the information of the ships on the board (dictionary)
     players: the information of the players (dictionary)
 
+    Returns
+    -------
+    None
+
     Version
     -------
     specification: Thomas Blanchy (v.3 16/04/2018)
@@ -765,6 +809,10 @@ def unlock_ship(orders, info, ships_ingame, players):
     info: all the informatiin of the game (dictionary)
     ships_ingame: the information of the ships on the board (dictionary)
     players: the information of the players (dictionary)
+
+    Returns
+    -------
+    None
 
     Version
     -------
@@ -921,6 +969,10 @@ def interpret_orders(new_orders, orders, player_name, ships_type, players, ships
     players: the information of the players (dictionary)
     ships_ingame: the ships currently on the board (dictionary)
     info: all the information of the game (dictionary)
+
+    Returns
+    -------
+    None
 
     Version
     -------
@@ -1288,6 +1340,10 @@ def end_game(players, info):
     ----------
     players: the information of the players (dictionary)
     info: the data structure with the portals and the asteroids (dictionary)
+
+    Returns
+    -------
+    None
 
     Version
     -------
