@@ -1552,9 +1552,8 @@ def ia(name, targets, info, players, ships_ingame, ships_type):
         c_diff = target_position[1] - ships_ingame[ship]['position'][1]
 
         # --- Apply movement to the target
-        if (ship_type == 'Warship' and abs(r_diff) + abs(c_diff) > 5) or \
-                (ship_type == 'Scout' and abs(r_diff) + abs(c_diff) > 3) or \
-                ship_type in ['Excavator-S', 'Excavator-M', 'Excavator-L']:
+        if not check_range(ship, target_position, ships_ingame, ships_type) \
+                or ship_type in ['Excavator-S', 'Excavator-M', 'Excavator-L']:
 
             x_move = 0 if target_position[0] == current_pos[0] else r_diff / abs(r_diff)
             y_move = 0 if target_position[1] == current_pos[1] else c_diff / abs(c_diff)
@@ -1898,7 +1897,10 @@ def check_range(attacker, target_pos, ships_ingame, ships_type):
     c_value = abs(target_pos[1] - attacker_ship['position'][1])
     distance = r_value + c_value
 
-    return distance <= ships_type[attacker_ship['type']]['range']
+    if attacker_ship['type'] in ['Warship', 'Scout']:
+        return distance <= ships_type[attacker_ship['type']]['range']
+    else:
+        return True
 
 
 start_game('game_2.txt', ['ia', 'ia'])
