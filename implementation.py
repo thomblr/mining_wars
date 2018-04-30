@@ -1466,6 +1466,7 @@ def ia(name, targets, info, players, ships_ingame, ships_type):
         for asteroid in info['asteroids']:
             current_ore += asteroid['ore']
 
+        # --- Set target positions
         if ships_ingame[ship]['type'] in ['Excavator-S', 'Excavator-M', 'Excavator-L']:
             space_left = ships_type[ships_ingame[ship]['type']]['tonnage'] - ships_ingame[ship]['ore']
             if space_left > 0.01 and current_ore > 0.01:
@@ -1494,6 +1495,7 @@ def ia(name, targets, info, players, ships_ingame, ships_type):
         r_diff = abs(target_position[0] - ships_ingame[ship]['position'][0])
         c_diff = abs(target_position[1] - ships_ingame[ship]['position'][1])
 
+        # --- Apply movement to the target
         if (ship_type == 'Warship' and r_diff + c_diff > 5) or \
                 (ship_type == 'Scout' and r_diff + c_diff > 3) or \
                 ship_type in ['Excavator-S', 'Excavator-M', 'Excavator-L']:
@@ -1529,6 +1531,27 @@ def ia(name, targets, info, players, ships_ingame, ships_type):
 
 
 def set_scout_target(owner_name, ship, targets, info, players):
+    """
+    Set target of a scout according to the best asteroids
+
+    Parameters
+    ----------
+    owner_name: the name of the player who own the scout (str)
+    ship: the name and the type of the ship (tuple)
+    targets: the current targets of the scout on the board (dictionary)
+    info: the information of the asteroids on the board (dictionary)
+    players: the information of the players (dictionary)
+
+    Returns
+    -------
+    None
+
+    Version
+    -------
+    specification: Thomas Blanchy
+    implementation: Thomas Blanchy
+    """
+
     ore_started = info['total_ore_on_board']
     current_ore = 0
     for asteroid in info['asteroids']:
