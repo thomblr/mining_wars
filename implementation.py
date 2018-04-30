@@ -1045,31 +1045,23 @@ def new_move_order(order, player_name, players, ships_ingame, info):
     new_position = [int(new_position[0]), int(new_position[1])]
 
     # Check if the player own the ship
-    if ship_name not in players[player_name]['ships']:
-        # print('%s - You do not own that ship.' % order)
-        return False
+    if ship_name in players[player_name]['ships']:
+        # Check if the new pos next to the old one
+        current_pos = ships_ingame[ship_name]['position']
+        if abs(new_position[0] - current_pos[0]) <= 1 and abs(new_position[1] - current_pos[1]) <= 1:
+            # Check if the new pos is in the board
+            board_size = info['size']
+            ship_radius = get_ship_radius(ships_ingame[ship_name]['type'])
 
-    # Check if the new pos next to the old one
-    current_pos = ships_ingame[ship_name]['position']
-    if abs(new_position[0] - current_pos[0]) > 1 or abs(new_position[1] - current_pos[1]) > 1:
-        # print('%s - Movement too far (>1)' % order)
-        return False
+            if new_position[0] - ship_radius > 0 or new_position[1] - ship_radius > 0 \
+                    or new_position[0] + ship_radius > board_size[0] or new_position[1] + ship_radius > board_size[1]:
 
-    # Check if the new pos is in the board
-    board_size = info['size']
-    ship_radius = get_ship_radius(ships_ingame[ship_name]['type'])
+                new_order = {
+                    'order': order,
+                    'player_name': player_name
+                }
 
-    if new_position[0] - ship_radius <= 0 or new_position[1] - ship_radius <= 0 \
-            or new_position[0] + ship_radius > board_size[0] or new_position[1] + ship_radius > board_size[1]:
-        # print('%s - Movement out of the board.' % order)
-        return False
-
-    new_order = {
-        'order': order,
-        'player_name': player_name
-    }
-
-    return new_order
+                return new_order
 
 
 def new_attack_order(order, player_name, players, ships_ingame, ships_type, info):
@@ -1100,31 +1092,20 @@ def new_attack_order(order, player_name, players, ships_ingame, ships_type, info
     target_pos = [int(order.split(':')[1].split('-')[0].replace('*', '')), int(order.split(':')[1].split('-')[1])]
 
     # Check in board
-    if target_pos[0] < 1 or target_pos[1] < 1 or target_pos[0] > info['size'][0] or target_pos[1] > info['size'][1]:
-        # print('You can not attack out of the board.')
-        return False
+    if target_pos[0] >= 1 and target_pos[1] >= 1:
+        if target_pos[0] <= info['size'][0] and target_pos[1] <= info['size'][1]:
+            # Check property
+            if ship_name in players[player_name]['ships']:
+                # Check Range
+                if check_range(ship_name, [target_pos[0], target_pos[1]], ships_ingame, ships_type):
+                    # Check ship type
+                    if ships_ingame[ship_name]['type'] in ['Scout', 'Warship']:
+                        new_order = {
+                            'order': order,
+                            'player_name': player_name
+                        }
 
-    # Check property
-    if ship_name not in players[player_name]['ships']:
-        # print('You do not own that ship.')
-        return False
-
-    # Check Range
-    if not check_range(ship_name, [target_pos[0], target_pos[1]], ships_ingame, ships_type):
-        # print('The target is too far to be reached.')
-        return False
-
-    # Check ship type
-    if ships_ingame[ship_name]['type'] not in ['Scout', 'Warship']:
-        # print('You can not attack with that ship.')
-        return False
-
-    new_order = {
-        'order': order,
-        'player_name': player_name
-    }
-
-    return new_order
+                        return new_order
 
 
 def new_buy_order(order, player_name, ships_type, ships_ingame, players):
@@ -1152,24 +1133,17 @@ def new_buy_order(order, player_name, ships_type, ships_ingame, players):
     ship_name = order.split(':')[0]
     ship_type = order.split(':')[1][0].upper() + order.split(':')[1][1:]
 
-    # Check if enough money
     price = ships_type[ship_type]['cost']
     money_in_bank = players[player_name]['ore']
 
-    if money_in_bank < price:
-        # print('You do not have enough money to buy that ship.')
-        return False
+    if money_in_bank >= price:  # Check if enough money in the bank
+        if ship_name not in ships_ingame.keys():
+            new_order = {
+                'order': order,
+                'player_name': player_name
+            }
 
-    if ship_name in ships_ingame.keys():
-        # print('That ship name is already used.')
-        return False
-
-    new_order = {
-        'order': order,
-        'player_name': player_name
-    }
-
-    return new_order
+            return new_order
 
 
 def new_lock_order(order, player_name, players, ships_ingame, info):
@@ -1197,42 +1171,30 @@ def new_lock_order(order, player_name, players, ships_ingame, info):
     ship_name = order.split(':')[0]
 
     # Check if own the ship
-    if ship_name not in players[player_name]['ships']:
-        # print('You do not own that ship.')
-        return False
+    if ship_name in players[player_name]['ships']:
+        ship_pos = ships_ingame[ship_name]['position']
 
-    ship_pos = ships_ingame[ship_name]['position']
+        # Check if it is an excavator
+        if ships_ingame[ship_name]['type'] in ['Excavator-S', 'Excavator-M', 'Excavator-L']:
+            for asteroid in info['asteroids']:
+                if asteroid['position'] == ship_pos:
+                    if ship_name not in asteroid['ships_locked']:
+                        new_order = {
+                            'order': order,
+                            'player_name': player_name
+                        }
 
-    # Check if it is an excavator
-    if ships_ingame[ship_name]['type'] not in ['Excavator-S', 'Excavator-M', 'Excavator-L']:
-        # print('You can not lock that ship.')
-        return False
+                        return new_order
 
-    for asteroid in info['asteroids']:
-        if asteroid['position'] == ship_pos:
-            if ship_name in asteroid['ships_locked']:
-                # print('That ship is already locked')
-                return False
+            for portal in info['portals']:
+                if portal['position'] == ship_pos:
+                    if ship_name not in portal['ships_locked']:
+                        new_order = {
+                            'order': order,
+                            'player_name': player_name
+                        }
 
-            new_order = {
-                'order': order,
-                'player_name': player_name
-            }
-
-            return new_order
-
-    for portal in info['portals']:
-        if portal['position'] == ship_pos:
-            if ship_name in portal['ships_locked']:
-                # print('That ship is already locked.')
-                return False
-
-            new_order = {
-                'order': order,
-                'player_name': player_name
-            }
-
-            return new_order
+                        return new_order
 
 
 def new_unlock_order(order, player_name, players, ships_ingame, info):
@@ -1260,42 +1222,30 @@ def new_unlock_order(order, player_name, players, ships_ingame, info):
     ship_name = order.split(':')[0]
 
     # Check if own the ship
-    if ship_name not in players[player_name]['ships']:
-        # print('You do not own that ship.')
-        return False
+    if ship_name in players[player_name]['ships']:
+        ship_pos = ships_ingame[ship_name]['position']
 
-    ship_pos = ships_ingame[ship_name]['position']
+        # Check if it is an excavator
+        if ships_ingame[ship_name]['type'] in ['Excavator-S', 'Excavator-M', 'Excavator-L']:
+            for asteroid in info['asteroids']:
+                if asteroid['position'] == ship_pos:
+                    if ship_name in asteroid['ships_locked']:
+                        new_order = {
+                            'order': order,
+                            'player_name': player_name
+                        }
 
-    # Check if it is an excavator
-    if ships_ingame[ship_name]['type'] not in ['Excavator-S', 'Excavator-M', 'Excavator-L']:
-        # print('You can not unlock that ship.')
-        return False
+                        return new_order
 
-    for asteroid in info['asteroids']:
-        if asteroid['position'] == ship_pos:
-            if ship_name not in asteroid['ships_locked']:
-                # print('That ship is not locked')
-                return False
+            for portal in info['portals']:
+                if portal['position'] == ship_pos:
+                    if ship_name in portal['ships_locked']:
+                        new_order = {
+                            'order': order,
+                            'player_name': player_name
+                        }
 
-            new_order = {
-                'order': order,
-                'player_name': player_name
-            }
-
-            return new_order
-
-    for portal in info['portals']:
-        if portal['position'] == ship_pos:
-            if ship_name not in portal['ships_locked']:
-                # print('That ship is not locked.')
-                return False
-
-            new_order = {
-                'order': order,
-                'player_name': player_name
-            }
-
-            return new_order
+                        return new_order
 
 
 #
