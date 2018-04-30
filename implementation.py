@@ -104,7 +104,7 @@ def start_game(config_name, player_types):
     no_damage_in_the_round = True
 
     while check_end_game(game_board, no_damage_in_the_round):
-        time.sleep(.3)
+        time.sleep(.1)
         new_orders = {
             'buy_orders': [],
             'lock_orders': [],
@@ -140,7 +140,7 @@ def start_game(config_name, player_types):
 
         # Show board & information
         draw_board(game_board, ships_ingame, ships_structure, players)
-        show_information(game_board, players, ships_ingame)
+        show_information(game_board, players, ships_ingame, True)
 
     end_game(players, game_board)
     print('Game Over!')
@@ -302,7 +302,7 @@ def add_portals_to_board(board, info):
                 board[int(pos_x) + i - 1][int(pos_y) + j - 1] = color + '\u2591' + colored.attr('reset')
 
 
-def show_information(info, players, ships_ingame):
+def show_information(info, players, ships_ingame, minimal):
     """
     Display all the information of the game
 
@@ -311,6 +311,7 @@ def show_information(info, players, ships_ingame):
     info: the data structure with the asteroids and the portals (dictionary)
     players: the information of the players (dictionary)
     ships_ingame: the information of the ships on the board (dictionary)
+    minimal: if show the minimal version or not (bool)
 
     Returns
     -------
@@ -440,9 +441,10 @@ def show_information(info, players, ships_ingame):
     print(ore_line)
     print(total_recolted_line)
     print(get_separator_line('-', 39))
-    print('| Name      | Type | Pos   | Life | Ore : Name      | Type | Pos   | Life | Ore |')
-    for ship_line in ships_lines:
-        print(ship_line)
+    if not minimal:
+        print('| Name      | Type | Pos   | Life | Ore : Name      | Type | Pos   | Life | Ore |')
+        for ship_line in ships_lines:
+            print(ship_line)
 
     asteroid_lines = []
     for i in range(0, len(info['asteroids']), 5):
