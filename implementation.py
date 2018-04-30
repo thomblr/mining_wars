@@ -1377,29 +1377,27 @@ def ia(name, targets, info, players, ships_ingame, ships_type):
 
     # Lock orders to an asteroid
     for asteroid in info['asteroids']:
-        for ship in ships_ingame:
+        for ship in players[name]['ships']:
             if ships_ingame[ship]['type'] in ['Excavator-S', 'Excavator-M', 'Excavator-L']:
-                if get_player_from_ship(ship, players) == name:
-                    stock = ships_type[ships_ingame[ship]['type']]['tonnage'] - ships_ingame[ship]['ore']
-                    if asteroid['position'] == ships_ingame[ship]['position'] and stock > 0:
-                        if asteroid['ore'] > 0.01:
-                            if ship not in asteroid['ships_locked']:
-                                orders.append('%s:lock' % ship)
+                stock = ships_type[ships_ingame[ship]['type']]['tonnage'] - ships_ingame[ship]['ore']
+                if asteroid['position'] == ships_ingame[ship]['position'] and stock > 0:
+                    if asteroid['ore'] > 0.01:
+                        if ship not in asteroid['ships_locked']:
+                            orders.append('%s:lock' % ship)
 
     # Lock orders to a portal
     for portal in info['portals']:
-        for ship in ships_ingame:
+        for ship in players[name]['ships']:
             if ships_ingame[ship]['type'] in ['Excavator-S', 'Excavator-M', 'Excavator-L']:
-                if get_player_from_ship(ship, players) == name:
-                    if portal['position'] == ships_ingame[ship]['position'] and ships_ingame[ship]['ore'] > 0:
-                        if ship not in portal['ships_locked']:
-                            orders.append('%s:lock' % ship)
+                if portal['position'] == ships_ingame[ship]['position'] and ships_ingame[ship]['ore'] > 0:
+                    if ship not in portal['ships_locked']:
+                        orders.append('%s:lock' % ship)
 
     # Unlock orders from an asteroid
     # -> for every enemy ship : if dist(enemy, ship) <= range(enemy) + 1 -> unlock
     for asteroid in info['asteroids']:
         for ship in asteroid['ships_locked']:
-            if get_player_from_ship(ship, players) == name:
+            if ship in players[name]['ships']:
                 if ships_ingame[ship]['ore'] == ships_type[ships_ingame[ship]['type']]['tonnage'] \
                         or enemy_close(ship, players, ships_ingame, ships_type) or asteroid['ore'] < 0.1:
                     orders.append('%s:release' % ship)
@@ -1407,7 +1405,7 @@ def ia(name, targets, info, players, ships_ingame, ships_type):
     # Unlock orders from a portal
     for portal in info['portals']:
         for ship in portal['ships_locked']:
-            if get_player_from_ship(ship, players) == name:
+            if ship in players[name]['ships']:
                 if ships_ingame[ship]['ore'] == 0:
                     orders.append('%s:release' % ship)
 
@@ -1661,6 +1659,7 @@ def is_locked(ship_name, info, ships_ingame):
     specification: Joaquim Peremans (v.1 15/04/2018)
     implementation: Joaquim Peremans (v.1 15/04/2018)
     """
+
     if ships_ingame[ship_name]['type'] in ['Excavator-S', 'Excavator-M', 'Excavator-L']:
         for asteroid in info['asteroids']:
             if ship_name in asteroid['ships_locked']:
