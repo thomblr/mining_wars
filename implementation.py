@@ -1610,6 +1610,26 @@ def find_best_asteroid_to_attack(player, info, targets, players):
 
 
 def enemy_close(ship_name, players, ships_ingame, ships_type):
+    """
+    Check if there is any enemy attack ship close to a certain ship.
+
+    Parameters
+    ----------
+    ship_name: the name of the ship (str)
+    players: the information of the players (dictionary)
+    ships_ingame: the information of the ships on the board (dictionary)
+    ships_type: the features of the different ships (dictionary)
+
+    Returns
+    -------
+    enemy: if there is any enemy or not (bool)
+
+    Version
+    -------
+    specification: Thomas Blanchy
+    implementation: Thomas Blanchy
+    """
+
     for player in players:
         if ship_name not in players[player]['ships']:
             enemy_player = players[player]
