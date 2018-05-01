@@ -104,7 +104,7 @@ def start_game(config_name, player_types):
     no_damage_in_the_round = True
 
     while check_end_game(game_board, no_damage_in_the_round):
-        time.sleep(.1)
+        time.sleep(.2)
         new_orders = {
             'buy_orders': [],
             'lock_orders': [],
@@ -118,7 +118,7 @@ def start_game(config_name, player_types):
                 order = input('Order of %s: ' % player)
                 interpret_orders(new_orders, order, player, ships_type, players, ships_ingame, game_board)
             else:
-                order = ia(player, ia_target, game_board, players, ships_ingame, ships_type)
+                order = ia(player, ia_target, game_board, players, ships_ingame, ships_type, ships_structure)
                 interpret_orders(new_orders, order, player, ships_type, players, ships_ingame, game_board)
 
         # Buying Phase
@@ -447,7 +447,7 @@ def show_information(info, players, ships_ingame, minimal):
             print(ship_line)
 
     asteroid_lines = []
-    for i in range(0, len(info['asteroids']), 5):
+    for i in range(0, len(info['asteroids']), 6):
         asteroid_line = '|'
         for n in range(i, i + 6):
             if n < len(info['asteroids']):
@@ -1379,7 +1379,7 @@ def get_winner(players, info):
 #   IA Functions
 #
 
-def ia(name, targets, info, players, ships_ingame, ships_type):
+def ia(name, targets, info, players, ships_ingame, ships_type, ships_structure):
 
     orders = []
 
@@ -1515,6 +1515,36 @@ def ia(name, targets, info, players, ships_ingame, ships_type):
             orders.append('%s:@%d-%d' % (ship, new_pos_r, new_pos_c))
 
     # Attack orders
+    for ship in players[name]['ships']:
+        if ships_ingame[ship]['type'] in ['Scout', 'Warship']:
+            player_index = list(players.keys()).index(name)
+            enemy_player = list(players.keys())[0 if player_index == 1 else 1]
+
+            # Handle attack other ships
+            for enemy_ship in players[enemy_player]['ships']:
+                ship_structure = []
+                for enemy_ship_structure in ships_structure[ships_ingame[enemy_ship]['type']]:
+                    ship_structure.append([ships_ingame[enemy_ship]['position'][0] + enemy_ship_structure[0],
+                                           ships_ingame[enemy_ship]['position'][1] + enemy_ship_structure[1]])
+
+                for enemy_ship_structure in ship_structure:
+                    if check_range(ship, enemy_ship_structure, ships_ingame, ships_type):
+                        print('%s ship of player %s can attack %s' % (ship, name, enemy_ship))
+
+            # Handle attack enemy portal
+            enemy_portal = info['portals'][0 if player_index == 1 else 1]
+            portal_structure = [(-2, -2), (-2, -1), (-2, 0), (-2, 1), (-2, 2),
+                                (-1, -2), (-1, -1), (-1, 0), (-1, 1), (-1, 2),
+                                (0, -2), (0, -1), (0, 0), (0, 1), (0, 2),
+                                (1, -2), (1, -1), (1, 0), (1, 1), (1, 2),
+                                (2, -2), (2, -1), (2, 0), (2, 1), (2, 2)]
+
+            for portal_element in portal_structure:
+                r_pos = enemy_portal['position'][0] + portal_element[0]
+                c_pos = enemy_portal['position'][1] + portal_element[1]
+
+                if check_range(ship, [r_pos, c_pos], ships_ingame, ships_type):
+                    print('Ship %s can attack enemy portal.' % ship)
 
     # Update scout target
     for ship in players[name]['ships']:
