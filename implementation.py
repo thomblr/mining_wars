@@ -1460,6 +1460,7 @@ def ia(name, targets, info, players, ships_ingame, ships_type, ships_structure):
         set_ship_target(name, [player_ship, ships_ingame[player_ship]['type']],
                         targets, info, players, ships_ingame, ships_type)
 
+    attack_this_round = False
     # Attack orders
     for ship in players[name]['ships']:
         if ships_ingame[ship]['type'] in ['Scout', 'Warship']:
@@ -1502,47 +1503,48 @@ def ia(name, targets, info, players, ships_ingame, ships_type, ships_structure):
                 if attack_pos in portal_pos_to_attack and attack_pos in pos_to_attack:
                     if not attacked:
                         orders.append('%s:*%d-%d' % (ship, attack_pos[0], attack_pos[1]))
-                        attacked = True
+                        attacked, attack_this_round = True
 
             if not attacked:
                 for attack_pos in all_pos:
                     if attack_pos in portal_pos_to_attack:
                         if not attacked:
                             orders.append('%s:*%d-%d' % (ship, attack_pos[0], attack_pos[1]))
-                            attacked = True
+                            attacked, attack_this_round = True
 
             if not attacked:
                 for attack_pos in all_pos:
                     if attack_pos in pos_to_attack:
                         if not attacked:
                             orders.append('%s:*%d-%d' % (ship, attack_pos[0], attack_pos[1]))
-                            attacked = True
+                            attacked, attack_this_round = True
 
-    # Move orders
-    current_ore = 0
-    for asteroid in info['asteroids']:
-        current_ore += asteroid['ore']
-
-    for ship in players[name]['ships']:
-        current_pos = ships_ingame[ship]['position']
-        target_position = targets[ship]
+    if not attack_this_round:
+        # Move orders
         current_ore = 0
         for asteroid in info['asteroids']:
             current_ore += asteroid['ore']
 
-        ship_type = ships_ingame[ship]['type']
-        r_delta = target_position[0] - ships_ingame[ship]['position'][0]
-        c_delta = target_position[1] - ships_ingame[ship]['position'][1]
+        for ship in players[name]['ships']:
+            current_pos = ships_ingame[ship]['position']
+            target_position = targets[ship]
+            current_ore = 0
+            for asteroid in info['asteroids']:
+                current_ore += asteroid['ore']
 
-        # --- Apply movement to the target
-        if not check_range(ship, target_position, ships_ingame, ships_type) \
-                or ship_type in ['Excavator-S', 'Excavator-M', 'Excavator-L']:
-            r_move = 0 if target_position[0] == current_pos[0] else r_delta / abs(r_delta)
-            c_move = 0 if target_position[1] == current_pos[1] else c_delta / abs(c_delta)
+            ship_type = ships_ingame[ship]['type']
+            r_delta = target_position[0] - ships_ingame[ship]['position'][0]
+            c_delta = target_position[1] - ships_ingame[ship]['position'][1]
 
-            new_pos_r = current_pos[0] + r_move
-            new_pos_c = current_pos[1] + c_move
-            orders.append('%s:@%d-%d' % (ship, new_pos_r, new_pos_c))
+            # --- Apply movement to the target
+            if not check_range(ship, target_position, ships_ingame, ships_type) \
+                    or ship_type in ['Excavator-S', 'Excavator-M', 'Excavator-L']:
+                r_move = 0 if target_position[0] == current_pos[0] else r_delta / abs(r_delta)
+                c_move = 0 if target_position[1] == current_pos[1] else c_delta / abs(c_delta)
+
+                new_pos_r = current_pos[0] + r_move
+                new_pos_c = current_pos[1] + c_move
+                orders.append('%s:@%d-%d' % (ship, new_pos_r, new_pos_c))
 
     return ' '.join(orders)
 
