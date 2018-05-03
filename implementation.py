@@ -1465,7 +1465,7 @@ def ia(name, targets, info, players, ships_ingame, ships_type, ships_structure):
     for ship in players[name]['ships']:
         if ships_ingame[ship]['type'] in ['Scout', 'Warship']:
             player_index = list(players.keys()).index(name)
-            enemy_player = list(players.keys())[0 if player_index == 1 else 1]
+            enemy_player = list(players.keys())[abs(player_index - 1)]
 
             # Handle attack other ships
             pos_to_attack = []
@@ -1583,13 +1583,21 @@ def set_ship_target(owner_name, ship, targets, info, players, ships_ingame, ship
     ore_ratio = current_ore / ore_started
 
     if ships_ingame[ship[0]]['type'] == 'Scout':
-        if ore_ratio > 0.1:  # Still some ore left -> Target ships on asteroids
+        # Check if enemy extractor left to avoid targeting asteroids if nobody comes to recolt
+        extractor_left = False
+        player_index = list(players.keys()).index(owner_name)
+        enemy_player = list(players.keys())[abs(player_index - 1)]
+        for enemy_ship in players[enemy_player]['ships']:
+            if ships_ingame[enemy_ship]['type'].startswith('Excavator'):
+                extractor_left = True
+
+        if ore_ratio > 0.1 and extractor_left:  # Still some ore left -> Target ships on asteroids
             # Find best asteroid to attack
             best_asteroid = dict(find_best_asteroid_to_attack(owner_name, info, targets, players))
             targets[ship[0]] = [best_asteroid['position'][0], best_asteroid['position'][1]]
         else:  # -> Target enemy portal as there is not any ore left
             player_index = list(players.keys()).index(owner_name)
-            enemy_portal = info['portals'][0 if player_index == 1 else 1]
+            enemy_portal = info['portals'][abs(player_index - 1)]
             targets[ship[0]] = [enemy_portal['position'][0], enemy_portal['position'][1]]
     elif ships_ingame[ship[0]]['type'] == 'Warship':
         # Always target enemy portal
@@ -1598,15 +1606,21 @@ def set_ship_target(owner_name, ship, targets, info, players, ships_ingame, ship
                 portal = get_portal_from_player(player, players, info)
                 targets[ship[0]] = [portal['position'][0], portal['position'][1]]
     else:
-        # Excavator : target closest asteroid
-        space_left = ships_type[ships_ingame[ship[0]]['type']]['tonnage'] - ships_ingame[ship[0]]['ore']
-        if space_left > 0.01 and current_ore > 0.01:
-            closest_asteroid = get_closest_asteroid(info, ships_ingame[ship[0]]['position'])
-            targets[ship[0]] = [closest_asteroid['position'][0], closest_asteroid['position'][1]]
+        enemy_ship = enemy_close(ship[0], players, ships_ingame, ships_type)
+        if enemy_ship:
+            enemy_pos = enemy_ship['position']
+            ship_pos = ships_ingame[ship[0]]['position']
+            targets[ship[0]] = [abs(enemy_pos[0] - ship_pos[0]), abs(enemy_pos[1] - ship_pos[1])]  # TODO
         else:
-            owner_name = get_player_from_ship(ship[0], players)
-            portal_pos = get_portal_from_player(owner_name, players, info)
-            targets[ship[0]] = [portal_pos['position'][0], portal_pos['position'][1]]
+            # Excavator : target closest asteroid
+            space_left = ships_type[ships_ingame[ship[0]]['type']]['tonnage'] - ships_ingame[ship[0]]['ore']
+            if space_left > 0.01 and current_ore > 0.01:
+                closest_asteroid = get_closest_asteroid(info, ships_ingame[ship[0]]['position'])
+                targets[ship[0]] = [closest_asteroid['position'][0], closest_asteroid['position'][1]]
+            else:
+                owner_name = get_player_from_ship(ship[0], players)
+                portal_pos = get_portal_from_player(owner_name, players, info)
+                targets[ship[0]] = [portal_pos['position'][0], portal_pos['position'][1]]
 
 
 def find_best_asteroid_to_attack(player, info, targets, players):
@@ -1675,22 +1689,22 @@ def enemy_close(ship_name, players, ships_ingame, ships_type):
     implementation: Thomas Blanchy
     """
 
-    for player in players:
-        if ship_name not in players[player]['ships']:
-            enemy_player = players[player]
-            ship_pos = ships_ingame[ship_name]['position']
+    ship_pos = ships_ingame[ship_name]['position']
+    player = get_player_from_ship(ship_name, players)
+    player_index = list(players.keys()).index(player)
+    enemy_player = list(players.keys())[abs(player_index - 1)]
 
-            for enemy_ship_name in enemy_player['ships']:
-                enemy_ship_type = ships_ingame[enemy_ship_name]['type']
+    for enemy_ship in players[enemy_player]['ships']:
+        enemy_ship_type = ships_ingame[enemy_ship]['type']
 
-                if enemy_ship_type in ['Scout', 'Warship']:
-                    enemy_ship_pos = ships_ingame[enemy_ship_name]['position']
+        if enemy_ship_type in ['Scout', 'Warship']:
+            enemy_ship_pos = ships_ingame[enemy_ship]['position']
 
-                    r_delta = abs(enemy_ship_pos[0] - ship_pos[0])
-                    c_delta = abs(enemy_ship_pos[1] - ship_pos[0])
+            r_delta = abs(enemy_ship_pos[0] - ship_pos[0])
+            c_delta = abs(enemy_ship_pos[1] - ship_pos[1])
 
-                    if r_delta + c_delta < ships_type[ships_ingame[enemy_ship_name]['type']]['range'] + 1:
-                        return True
+            if r_delta + c_delta < ships_type[ships_ingame[enemy_ship]['type']]['range'] + 1:
+                return ships_ingame[enemy_ship]
     return False
 
 
