@@ -87,12 +87,11 @@ def start_game(config_name, player_types):
 
     # Create names for the players
     id_player = 0
+    name_list = ['Thomas', 'Mathilde', 'Moussa', 'Elena']
     for player in player_types:
-        if player == 'human':
-            name = input('Name of the player %d ? (unique)' % id_player)
-        else:
-            print('Random name for player %d ...' % id_player)
-            name = 'IA#%d' % random.randint(0, 999)
+        print('Random name for player %d ...' % id_player)
+        name = random.choice(name_list)
+        name_list.remove(name)
         id_player += 1
 
         players[name] = {}
@@ -140,7 +139,7 @@ def start_game(config_name, player_types):
 
         # Show board & information
         draw_board(game_board, ships_ingame, ships_structure, players)
-        show_information(game_board, players, ships_ingame, True)
+        show_information(game_board, players, ships_ingame, False)
 
     end_game(players, game_board)
     print('Game Over!')
@@ -600,11 +599,11 @@ def attack_ship(orders, info, ships_ingame, ships_type, players, ships_structure
     implementation: Joaquim Peremans, Thomas Blanchy (v.2 20/04/2018)
     """
 
+    is_damage = False
     for order in orders:
         ship_name = order['order'].split(':')[0]
         target_pos = [int(order['order'].split(':')[1].split('-')[0].replace('*', '')),
                       int(order['order'].split(':')[1].split('-')[1])]
-        is_damage = False
 
         # Check portal damage
         for portal in info['portals']:
@@ -618,6 +617,8 @@ def attack_ship(orders, info, ships_ingame, ships_type, players, ships_structure
                 portal_pos = portal['position']
                 if target_pos[0] == portal_pos[0] + p_pos[0] and target_pos[1] == portal_pos[1] + p_pos[1]:
                     damage = ships_type[ships_ingame[ship_name]['type']]['attack']
+                    if damage > portal['life']:
+                        damage = portal['life']
                     portal['life'] -= damage
                     is_damage = True
 
@@ -631,35 +632,33 @@ def attack_ship(orders, info, ships_ingame, ships_type, players, ships_structure
                     ships_ingame[ship]['life'] -= damage
                     is_damage = True
 
-        # Remove dead ships
-        for i in range(len(ships_ingame) - 1, -1, -1):
-            ship = list(ships_ingame.keys())[i]
-            if ships_ingame[ship]['life'] <= 0:
-                print('The ship %s has been destroyed.' % ship)
-                del ships_ingame[ship]
+    # Remove dead ships
+    for i in range(len(ships_ingame) - 1, -1, -1):
+        ship = list(ships_ingame.keys())[i]
+        if ships_ingame[ship]['life'] <= 0:
+            del ships_ingame[ship]
 
-                # Delete ships from locked ships on asteroids
-                for asteroid in info['asteroids']:
-                    ships_locked = asteroid['ships_locked']
-                    if ship in ships_locked:
-                        ships_locked.remove(ship)
+            # Delete ships from locked ships on asteroids
+            for asteroid in info['asteroids']:
+                ships_locked = asteroid['ships_locked']
+                if ship in ships_locked:
+                    ships_locked.remove(ship)
 
-                # Delete ships from locked ships on portals
-                for portal in info['portals']:
-                    ships_locked = portal['ships_locked']
-                    if ship in ships_locked:
-                        ships_locked.remove(ship)
+            # Delete ships from locked ships on portals
+            for portal in info['portals']:
+                ships_locked = portal['ships_locked']
+                if ship in ships_locked:
+                    ships_locked.remove(ship)
 
-                # Delete ships from players ships
-                for player in players:
-                    if ship in players[player]['ships']:
-                        players[player]['ships'].remove(ship)
+            # Delete ships from players ships
+            for player in players:
+                if ship in players[player]['ships']:
+                    players[player]['ships'].remove(ship)
 
-        if is_damage:
-            return False
-        else:
-            return True
-    return True
+    if is_damage:
+        return False
+    else:
+        return True
 
 
 def collect_ores(info, ships_ingame, players, ships_type):
@@ -1420,8 +1419,8 @@ def ia(name, targets, info, players, ships_ingame, ships_type, ships_structure):
     # Buy orders
     player_ore = int(players[name]['ore'])
     if not players[name]['ships'] and player_ore == 4:
-        orders.append('IAs#%d:Excavator-M' % random.randint(0, 999))
-        orders.append('IAs#%d:Excavator-M' % random.randint(0, 999))
+        orders.append('%s#%d:Excavator-M' % (name[:3], random.randint(0, 999)))
+        orders.append('%s#%d:Excavator-M' % (name[:3], random.randint(0, 999)))
     else:
         types_of_ship = list(ships_type.keys())
         random.shuffle(types_of_ship)
@@ -1438,13 +1437,13 @@ def ia(name, targets, info, players, ships_ingame, ships_type, ships_structure):
                 if ship_type in ['Excavator-S', 'Excavator-M', 'Excavator-L']:
                     if player_ore >= ships_type[ship_type]['cost']:
                         if random.random() > 0.5:
-                            orders.append('IAs#%d:%s' % (random.randint(0, 999), ship_type))
+                            orders.append('%s#%d:%s' % (name[:3], random.randint(0, 999), ship_type))
                             player_ore -= ships_type[ship_type]['cost']
         elif ore_ratio >= 0.3:
             for ship_type in types_of_ship:
                 if player_ore >= ships_type[ship_type]['cost']:
                     if random.random() > 0.5 or ship_type == 'Warship':
-                        ship_name = 'IAs#%d' % random.randint(0, 999)
+                        ship_name = '%s#%d' % (name[:3], random.randint(0, 999))
                         orders.append('%s:%s' % (ship_name, ship_type))
                         ships_to_buy.append((ship_name, ship_type))
                         player_ore -= ships_type[ship_type]['cost']
@@ -1453,7 +1452,7 @@ def ia(name, targets, info, players, ships_ingame, ships_type, ships_structure):
                 if ship_type in ['Scout', 'Warship']:
                     if player_ore >= ships_type[ship_type]['cost']:
                         if random.random() > 0.5:
-                            ship_name = 'IAs#%d' % random.randint(0, 999)
+                            ship_name = '%s#%d' % (name[:3], random.randint(0, 999))
                             orders.append('%s:%s' % (ship_name, ship_type))
                             ships_to_buy.append((ship_name, ship_type))
                             player_ore -= ships_type[ship_type]['cost']
@@ -1521,6 +1520,7 @@ def ia(name, targets, info, players, ships_ingame, ships_type, ships_structure):
             enemy_player = list(players.keys())[0 if player_index == 1 else 1]
 
             # Handle attack other ships
+            pos_to_attack = []
             for enemy_ship in players[enemy_player]['ships']:
                 ship_structure = []
                 for enemy_ship_structure in ships_structure[ships_ingame[enemy_ship]['type']]:
@@ -1529,22 +1529,47 @@ def ia(name, targets, info, players, ships_ingame, ships_type, ships_structure):
 
                 for enemy_ship_structure in ship_structure:
                     if check_range(ship, enemy_ship_structure, ships_ingame, ships_type):
-                        print('%s ship of player %s can attack %s' % (ship, name, enemy_ship))
+                        pos_to_attack.append([enemy_ship_structure[0], enemy_ship_structure[1]])
 
             # Handle attack enemy portal
-            enemy_portal = info['portals'][0 if player_index == 1 else 1]
+            enemy_portal = get_portal_from_player(enemy_player, players, info)
             portal_structure = [(-2, -2), (-2, -1), (-2, 0), (-2, 1), (-2, 2),
                                 (-1, -2), (-1, -1), (-1, 0), (-1, 1), (-1, 2),
                                 (0, -2), (0, -1), (0, 0), (0, 1), (0, 2),
                                 (1, -2), (1, -1), (1, 0), (1, 1), (1, 2),
                                 (2, -2), (2, -1), (2, 0), (2, 1), (2, 2)]
 
+            portal_pos_to_attack = []
             for portal_element in portal_structure:
                 r_pos = enemy_portal['position'][0] + portal_element[0]
                 c_pos = enemy_portal['position'][1] + portal_element[1]
 
                 if check_range(ship, [r_pos, c_pos], ships_ingame, ships_type):
-                    print('Ship %s can attack enemy portal.' % ship)
+                    portal_pos_to_attack.append([r_pos, c_pos])
+
+            all_pos = pos_to_attack.copy()
+            all_pos.extend(portal_pos_to_attack)
+            attacked = False
+
+            for attack_pos in all_pos:
+                if attack_pos in portal_pos_to_attack and attack_pos in pos_to_attack:
+                    if not attacked:
+                        orders.append('%s:*%d-%d' % (ship, attack_pos[0], attack_pos[1]))
+                        attacked = True
+
+            if not attacked:
+                for attack_pos in all_pos:
+                    if attack_pos in portal_pos_to_attack:
+                        if not attacked:
+                            orders.append('%s:*%d-%d' % (ship, attack_pos[0], attack_pos[1]))
+                            attacked = True
+
+            if not attacked:
+                for attack_pos in all_pos:
+                    if attack_pos in pos_to_attack:
+                        if not attacked:
+                            orders.append('%s:*%d-%d' % (ship, attack_pos[0], attack_pos[1]))
+                            attacked = True
 
     # Update scout target
     for ship in players[name]['ships']:
