@@ -1433,29 +1433,27 @@ def ia(name, targets, info, players, ships_ingame, ships_type, ships_structure):
         ships_to_buy = []
 
         if ore_ratio >= 0.8:
-            for ship_type in types_of_ship:
-                if ship_type in ['Excavator-S', 'Excavator-M', 'Excavator-L']:
-                    if player_ore >= ships_type[ship_type]['cost']:
-                        if random.random() > 0.5:
-                            orders.append('%s#%d:%s' % (name[:3], random.randint(0, 999), ship_type))
-                            player_ore -= ships_type[ship_type]['cost']
+            type_to_buy = random.choice(['Excavator-S', 'Excavator-M', 'Excavator-L'])
+            if player_ore >= ships_type[type_to_buy]['cost']:
+                if random.random() > 0.5:
+                    orders.append('%s#%d:%s' % (name[:3], random.randint(0, 999), type_to_buy))
+                    player_ore -= ships_type[type_to_buy]['cost']
         elif ore_ratio >= 0.3:
-            for ship_type in types_of_ship:
-                if player_ore >= ships_type[ship_type]['cost']:
-                    if random.random() > 0.5 or ship_type == 'Warship':
-                        ship_name = '%s#%d' % (name[:3], random.randint(0, 999))
-                        orders.append('%s:%s' % (ship_name, ship_type))
-                        ships_to_buy.append((ship_name, ship_type))
-                        player_ore -= ships_type[ship_type]['cost']
+            type_to_buy = random.choice(['Excavator-L', 'Scout', 'Warship'])
+            if player_ore >= ships_type[type_to_buy]['cost']:
+                if random.random() > 0.5 or type_to_buy == 'Warship':
+                    ship_name = '%s#%d' % (name[:3], random.randint(0, 999))
+                    orders.append('%s:%s' % (ship_name, type_to_buy))
+                    ships_to_buy.append((ship_name, type_to_buy))
+                    player_ore -= ships_type[type_to_buy]['cost']
         else:
-            for ship_type in types_of_ship:
-                if ship_type in ['Scout', 'Warship']:
-                    if player_ore >= ships_type[ship_type]['cost']:
-                        if random.random() > 0.5:
-                            ship_name = '%s#%d' % (name[:3], random.randint(0, 999))
-                            orders.append('%s:%s' % (ship_name, ship_type))
-                            ships_to_buy.append((ship_name, ship_type))
-                            player_ore -= ships_type[ship_type]['cost']
+            type_to_buy = random.choice(['Scout', 'Warship'])
+            if player_ore >= ships_type[type_to_buy]['cost']:
+                if random.random() > 0.5:
+                    ship_name = '%s#%d' % (name[:3], random.randint(0, 999))
+                    orders.append('%s:%s' % (ship_name, type_to_buy))
+                    ships_to_buy.append((ship_name, type_to_buy))
+                    player_ore -= ships_type[type_to_buy]['cost']
 
         for ship in ships_to_buy:
             if ship[1] == 'Scout':
