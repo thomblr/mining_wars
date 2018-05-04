@@ -13,6 +13,7 @@ def start_game(config_name, player_types, player_id):
     ----------
     config_name: the name of the file configuration (str)
     player_types: the types of the players (list)
+    player_id: id of the player (int)
 
     Returns
     -------
@@ -88,7 +89,7 @@ def start_game(config_name, player_types, player_id):
 
     # Create names for the players
     id_player = 0
-    name_list = ['Thomas', 'Mathilde', 'Moussa', 'Elena']
+    name_list = ['Thomas', 'Mathilde', 'Moussa', 'Elena', 'Cyril', 'Joaquim']
     for player in player_types:
         print('Random name for player %d ...' % id_player)
         name = random.choice(name_list)
@@ -104,7 +105,9 @@ def start_game(config_name, player_types, player_id):
     no_damage_in_the_round = True
 
     # Connexion reseau
-    connection = remote_play.connect_to_player(player_id, '138.48.109.28', True)  # IP: 138.48.221.122
+    connection = ''
+    if 'remote' in player_types:
+        connection = remote_play.connect_to_player(player_id, '138.48.109.28', True)  # IP: 138.48.221.122
 
     while check_end_game(game_board, no_damage_in_the_round):
         time.sleep(.2)
@@ -124,7 +127,8 @@ def start_game(config_name, player_types, player_id):
             else:
                 order = ia(player, ia_target, game_board, players, ships_ingame, ships_type, ships_structure,
                            list(players.keys()).index(player))
-                remote_play.notify_remote_orders(connection, order)
+                if 'remote' in player_types:
+                    remote_play.notify_remote_orders(connection, order)
             interpret_orders(new_orders, order, player, ships_type, players, ships_ingame, game_board)
 
         # Buying Phase
@@ -870,6 +874,7 @@ def load_file(config_name):
     info = fh.readlines()
     for line in info:
         info[info.index(line)] = line.replace('\n', '')
+    fh.close()
     return info
 
 
@@ -988,7 +993,7 @@ def interpret_orders(new_orders, orders, player_name, ships_type, players, ships
     implementation: Thomas Blanchy (v.1 15/04/2018)
     """
 
-    if len(orders) > 0:
+    if len(orders.strip()) > 0:
         all_orders = orders.split(' ')
         for order in all_orders:
             order_name = order.split(':')[1]
@@ -1930,4 +1935,4 @@ def check_range(attacker, target_pos, ships_ingame, ships_type):
 
 
 id_p = input('Player id? ')
-start_game('game_2.txt', ['ia', 'remote'], int(id_p))
+start_game('game_2.txt', ['ia', 'ia'], int(id_p))
