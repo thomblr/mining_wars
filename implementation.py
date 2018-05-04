@@ -5,7 +5,7 @@ import math
 import remote_play
 
 
-def start_game(config_name, player_types):
+def start_game(config_name, player_types, player_id):
     """
     The main function to start the game.
 
@@ -104,7 +104,7 @@ def start_game(config_name, player_types):
     no_damage_in_the_round = True
 
     # Connexion reseau
-    connection = remote_play.connect_to_player(1, '127.0.0.1', True)
+    connection = remote_play.connect_to_player(player_id, '138.48.109.28', True)  # IP: 138.48.221.122
 
     while check_end_game(game_board, no_damage_in_the_round):
         time.sleep(.2)
@@ -122,7 +122,8 @@ def start_game(config_name, player_types):
             elif players[player]['type'] == 'remote':
                 order = remote_play.get_remote_orders(connection)
             else:
-                order = ia(player, ia_target, game_board, players, ships_ingame, ships_type, ships_structure)
+                order = ia(player, ia_target, game_board, players, ships_ingame, ships_type, ships_structure,
+                           list(players.keys()).index(player))
                 remote_play.notify_remote_orders(connection, order)
             interpret_orders(new_orders, order, player, ships_type, players, ships_ingame, game_board)
 
@@ -1384,7 +1385,7 @@ def get_winner(players, info):
 #   IA Functions
 #
 
-def ia(name, targets, info, players, ships_ingame, ships_type, ships_structure):
+def ia(name, targets, info, players, ships_ingame, ships_type, ships_structure, type):
 
     orders = []
 
@@ -1438,14 +1439,15 @@ def ia(name, targets, info, players, ships_ingame, ships_type, ships_structure):
 
         ships_to_buy = []
 
-        if ore_ratio >= 0.9:
+        if ore_ratio >= 0.8:
             type_to_buy = random.choice(['Excavator-S', 'Excavator-M', 'Excavator-L'])
             if player_ore >= ships_type[type_to_buy]['cost']:
                 if random.random() > 0.5:
                     orders.append('%s#%d:%s' % (name[:3], random.randint(0, 999), type_to_buy))
                     player_ore -= ships_type[type_to_buy]['cost']
         elif ore_ratio >= 0.5:
-            type_to_buy = random.choice(['Excavator-L', 'Scout', 'Warship'])
+            types = ['Warship', 'Scout', 'Excavator-L'] if type == 1 else ['Warship', 'Excavator-L']
+            type_to_buy = random.choice(types)
             if player_ore >= ships_type[type_to_buy]['cost']:
                 if random.random() > 0.5 or type_to_buy == 'Warship':
                     ship_name = '%s#%d' % (name[:3], random.randint(0, 999))
@@ -1453,7 +1455,8 @@ def ia(name, targets, info, players, ships_ingame, ships_type, ships_structure):
                     ships_to_buy.append((ship_name, type_to_buy))
                     player_ore -= ships_type[type_to_buy]['cost']
         else:
-            type_to_buy = random.choice(['Scout', 'Warship'])
+            types = ['Warship', 'Scout'] if type == 1 else ['Warship']
+            type_to_buy = random.choice(types)
             if player_ore >= ships_type[type_to_buy]['cost']:
                 if random.random() > 0.5:
                     ship_name = '%s#%d' % (name[:3], random.randint(0, 999))
@@ -1598,9 +1601,18 @@ def set_ship_target(owner_name, ship, targets, info, players, ships_ingame, ship
                 extractor_left = True
 
         if ore_ratio > 0.1 and extractor_left:  # Still some ore left -> Target ships on asteroids
-            # Find best asteroid to attack
-            best_asteroid = dict(find_best_asteroid_to_attack(owner_name, info, targets, players))
-            targets[ship[0]] = [best_asteroid['position'][0], best_asteroid['position'][1]]
+            if ship[0] in targets:
+                for asteroid in info['asteroids']:
+                    if asteroid['position'][0] == targets[ship[0]][0] \
+                            and asteroid['position'][1] == targets[ship[0]][1]:
+                        if asteroid['ore'] < 0.1:
+                            # Find best asteroid to attack
+                            best_asteroid = dict(find_best_asteroid_to_attack(owner_name, info, targets, players))
+                            targets[ship[0]] = [best_asteroid['position'][0], best_asteroid['position'][1]]
+            else:
+                # Find best asteroid to attack
+                best_asteroid = dict(find_best_asteroid_to_attack(owner_name, info, targets, players))
+                targets[ship[0]] = [best_asteroid['position'][0], best_asteroid['position'][1]]
         else:  # -> Target enemy portal as there is not any ore left
             player_index = list(players.keys()).index(owner_name)
             enemy_portal = info['portals'][abs(player_index - 1)]
@@ -1612,21 +1624,15 @@ def set_ship_target(owner_name, ship, targets, info, players, ships_ingame, ship
                 portal = get_portal_from_player(player, players, info)
                 targets[ship[0]] = [portal['position'][0], portal['position'][1]]
     else:
-        enemy_ship = enemy_close(ship[0], players, ships_ingame, ships_type)
-        if enemy_ship:
-            enemy_pos = enemy_ship['position']
-            ship_pos = ships_ingame[ship[0]]['position']
-            targets[ship[0]] = [abs(enemy_pos[0] - ship_pos[0]), abs(enemy_pos[1] - ship_pos[1])]  # TODO
+        # Excavator : target closest asteroid
+        space_left = ships_type[ships_ingame[ship[0]]['type']]['tonnage'] - ships_ingame[ship[0]]['ore']
+        if space_left > 0.01 and current_ore > 0.01:
+            closest_asteroid = get_closest_asteroid(info, ships_ingame[ship[0]]['position'])
+            targets[ship[0]] = [closest_asteroid['position'][0], closest_asteroid['position'][1]]
         else:
-            # Excavator : target closest asteroid
-            space_left = ships_type[ships_ingame[ship[0]]['type']]['tonnage'] - ships_ingame[ship[0]]['ore']
-            if space_left > 0.01 and current_ore > 0.01:
-                closest_asteroid = get_closest_asteroid(info, ships_ingame[ship[0]]['position'])
-                targets[ship[0]] = [closest_asteroid['position'][0], closest_asteroid['position'][1]]
-            else:
-                owner_name = get_player_from_ship(ship[0], players)
-                portal_pos = get_portal_from_player(owner_name, players, info)
-                targets[ship[0]] = [portal_pos['position'][0], portal_pos['position'][1]]
+            owner_name = get_player_from_ship(ship[0], players)
+            portal_pos = get_portal_from_player(owner_name, players, info)
+            targets[ship[0]] = [portal_pos['position'][0], portal_pos['position'][1]]
 
 
 def find_best_asteroid_to_attack(player, info, targets, players):
@@ -1923,4 +1929,5 @@ def check_range(attacker, target_pos, ships_ingame, ships_type):
         return True
 
 
-start_game('game_2.txt', ['ia', 'ia'])
+id_p = input('Player id? ')
+start_game('game_2.txt', ['ia', 'remote'], int(id_p))
