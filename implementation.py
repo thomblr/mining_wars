@@ -72,9 +72,6 @@ def start_game(config_name, player_types, player_id):
     ships_ingame = {}
     players = {}
     ia_target = {}
-    # ia_target = {
-    #       'ia_ship_name': (X, Y),
-    #       'ia_ship_2': (X, Y)
 
     # Load information from the config file
     info = load_file(config_name)
@@ -97,10 +94,10 @@ def start_game(config_name, player_types, player_id):
         id_player += 1
 
         players[name] = {}
-        players[name]['type'] = player
-        players[name]['ore'] = 4
+        players[name]['type'] = player  # Which type the player is (human, IA, remote)
+        players[name]['ore'] = 4  # Each player starts with 4 ores
         players[name]['total_recolted'] = 0
-        players[name]['ships'] = []
+        players[name]['ships'] = []  # List of ships the player owns
 
     no_damage_in_the_round = True
 
@@ -125,8 +122,7 @@ def start_game(config_name, player_types, player_id):
             elif players[player]['type'] == 'remote':
                 order = remote_play.get_remote_orders(connection)
             else:
-                order = ia(player, ia_target, game_board, players, ships_ingame, ships_type, ships_structure,
-                           list(players.keys()).index(player))
+                order = ia(player, ia_target, game_board, players, ships_ingame, ships_type, ships_structure)
                 if 'remote' in player_types:
                     remote_play.notify_remote_orders(connection, order)
             interpret_orders(new_orders, order, player, ships_type, players, ships_ingame, game_board)
@@ -150,7 +146,7 @@ def start_game(config_name, player_types, player_id):
 
         # Show board & information
         draw_board(game_board, ships_ingame, ships_structure, players)
-        show_information(game_board, players, ships_ingame, True)
+        show_information(game_board, players, ships_ingame, False)
 
     end_game(players, game_board)
     print('Game Over!')
@@ -241,7 +237,7 @@ def add_ships_to_board(board, ships, ships_structure, players):
     implementation: Joaquim Peremans (v.1 15/04/2018)
     """
 
-    ship_colors = [1, 21]
+    ship_colors = [1, 21]  # Colors of colored : 1=red, 21=blue
     for ship in ships:
         owner_index = list(players.keys()).index(get_player_from_ship(ship, players))
         color = colored.fg(ship_colors[owner_index])
@@ -278,7 +274,7 @@ def add_asteroids_to_board(board, info):
         pos_r = asteroid['position'][0]
         pos_c = asteroid['position'][1]
         ore = asteroid['ore']
-        color = colored.fg(2) if ore > 0.1 else colored.fg(15)
+        color = colored.fg(2) if ore > 0.1 else colored.fg(15)  # Green if filled or white if empty
         board[int(pos_r) - 1][int(pos_c) - 1] = color + '\u25D8' + colored.attr('reset')
 
 
@@ -301,7 +297,7 @@ def add_portals_to_board(board, info):
     implementation: Joaquim Peremans (v.1 15/04/2018)
     """
 
-    portal_colors = [174, 45]
+    portal_colors = [174, 45]  # Colors of colored : 174=light_red, 45=light_blue
     for portal in info['portals']:
         portal_index = info['portals'].index(portal)
         color = colored.fg(portal_colors[portal_index])
@@ -446,11 +442,11 @@ def show_information(info, players, ships_ingame, minimal):
 
     print('-' * current_length)
     print(name_line)
-    print(get_separator_line('=', 39))
+    print('[%s:%s]' % ('=' * 39, '=' * 39))
     print(portal_line)
     print(ore_line)
     print(total_recolted_line)
-    print(get_separator_line('-', 39))
+    print('[%s:%s]' % ('-' * 39, '-' * 39))
     if not minimal:
         print('| Name      | Type | Pos   | Life | Ore : Name      | Type | Pos   | Life | Ore |')
         for ship_line in ships_lines:
@@ -484,29 +480,6 @@ def show_information(info, players, ships_ingame, minimal):
     for a_line in asteroid_lines:
         print(a_line)
     print('-' * 85)
-
-
-def get_separator_line(separator, side_length):
-    """
-    Get a separator line
-
-    Parameters
-    ----------
-    separator: the character of the separator (str)
-    side_length: the length of both sides (int)
-
-    Returns
-    -------
-    separator: the full separator line (str)
-
-    Version
-    -------
-    specification: Thomas Blanchy (v.1 24/04/2018)
-    implementation: Thomas Blanchy (v.1 24/04/2018)
-    """
-
-    line = '[%s:%s]' % (separator * side_length, separator * side_length)
-    return line
 
 #
 #   Actions
@@ -1390,7 +1363,7 @@ def get_winner(players, info):
 #   IA Functions
 #
 
-def ia(name, targets, info, players, ships_ingame, ships_type, ships_structure, type):
+def ia(name, targets, info, players, ships_ingame, ships_type, ships_structure):
 
     orders = []
 
@@ -1451,8 +1424,7 @@ def ia(name, targets, info, players, ships_ingame, ships_type, ships_structure, 
                     orders.append('%s#%d:%s' % (name[:3], random.randint(0, 999), type_to_buy))
                     player_ore -= ships_type[type_to_buy]['cost']
         elif ore_ratio >= 0.5:
-            types = ['Warship', 'Scout', 'Excavator-L'] if type == 1 else ['Warship', 'Excavator-L']
-            type_to_buy = random.choice(types)
+            type_to_buy = random.choice(['Warship', 'Scout', 'Excavator-L'])
             if player_ore >= ships_type[type_to_buy]['cost']:
                 if random.random() > 0.5 or type_to_buy == 'Warship':
                     ship_name = '%s#%d' % (name[:3], random.randint(0, 999))
@@ -1460,8 +1432,7 @@ def ia(name, targets, info, players, ships_ingame, ships_type, ships_structure, 
                     ships_to_buy.append((ship_name, type_to_buy))
                     player_ore -= ships_type[type_to_buy]['cost']
         else:
-            types = ['Warship', 'Scout'] if type == 1 else ['Warship']
-            type_to_buy = random.choice(types)
+            type_to_buy = random.choice(['Warship', 'Scout'])
             if player_ore >= ships_type[type_to_buy]['cost']:
                 if random.random() > 0.5:
                     ship_name = '%s#%d' % (name[:3], random.randint(0, 999))
