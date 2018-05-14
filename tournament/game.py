@@ -5,7 +5,7 @@ import math
 import remote_play
 
 
-def start_game(config_name, player_one_type, player_two_type, player_id):
+def start_game(config_name, player_one_type, player_two_type, player_id, opponent_ip='127.0.0.1'):
     """
     The main function to start the game.
 
@@ -15,6 +15,7 @@ def start_game(config_name, player_one_type, player_two_type, player_id):
     player_one_type: the type of the first player (str)
     player_two_type: the type of the second player (str)
     player_id: id of the player (int)
+    opponent_ip: the ip of the opponent (str)
 
     Returns
     -------
@@ -105,7 +106,7 @@ def start_game(config_name, player_one_type, player_two_type, player_id):
     # Connexion reseau
     connection = ''
     if 'remote' in [player_one_type, player_two_type]:
-        connection = remote_play.connect_to_player(player_id, '138.48.109.28', True)  # IP: 138.48.221.122
+        connection = remote_play.connect_to_player(player_id, opponent_ip, True)
 
     while check_end_game(game_board, no_damage_in_the_round):
         time.sleep(.2)
