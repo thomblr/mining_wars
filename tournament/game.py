@@ -80,7 +80,7 @@ def start_game(config_name, player_one_type, player_two_type, player_id, opponen
     game_board['size'] = load_size(info)
     game_board['portals'] = load_portals(info)
     game_board['asteroids'] = load_asteroids(info)
-    game_board['empty_round_left'] = 200
+    game_board['empty_round_left'] = 80
     game_board['total_ore_on_board'] = 0
 
     for asteroid in game_board['asteroids']:
