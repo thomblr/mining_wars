@@ -1,8 +1,8 @@
 import colored
 import random
-import time
 import math
 import remote_play
+import time
 
 
 def start_game(config_name, player_one_type, player_two_type, player_id, opponent_ip='127.0.0.1'):
@@ -80,7 +80,7 @@ def start_game(config_name, player_one_type, player_two_type, player_id, opponen
     game_board['size'] = load_size(info)
     game_board['portals'] = load_portals(info)
     game_board['asteroids'] = load_asteroids(info)
-    game_board['empty_round_left'] = 80
+    game_board['empty_round_left'] = 200
     game_board['total_ore_on_board'] = 0
 
     for asteroid in game_board['asteroids']:
@@ -93,9 +93,12 @@ def start_game(config_name, player_one_type, player_two_type, player_id, opponen
         print('Random name for player %d ...' % id_player)
         name = random.choice(name_list)
         name_list.remove(name)
-        id_player += 1
+        if player == 'remote':
+            name += '$'
 
         players[name] = {}
+        players[name]['id'] = id_player
+        id_player += 1
         players[name]['type'] = player  # Which type the player is (human, IA, remote)
         players[name]['ore'] = 4  # Each player starts with 4 ores
         players[name]['total_recolted'] = 0
@@ -109,6 +112,7 @@ def start_game(config_name, player_one_type, player_two_type, player_id, opponen
         connection = remote_play.connect_to_player(player_id, opponent_ip, True)
 
     while check_end_game(game_board, no_damage_in_the_round):
+        time.sleep(1)
         new_orders = {
             'buy_orders': [],
             'lock_orders': [],
@@ -118,6 +122,40 @@ def start_game(config_name, player_one_type, player_two_type, player_id, opponen
         }
 
         # 1 : notify puis get
+        # 2 : get puis notify
+
+        if player_id == 1:
+            player_name = get_player_from_id(0, players)
+            order_1 = ia(player_name, ia_target, game_board, players, ships_ingame, ships_type, ships_structure)
+            remote_play.notify_remote_orders(connection, order_1)
+            order_2 = remote_play.get_remote_orders(connection)
+
+            print('=====')
+            print('Order sent: %s' % order_1)
+            print('Order received: %s' % order_2)
+            print('Player ID = %d' % player_id)
+            print('==================')
+            time.sleep(3)
+
+            interpret_orders(new_orders, order_1, player_name, ships_type, players, ships_ingame, game_board)
+            interpret_orders(new_orders, order_2, player_name, ships_type, players, ships_ingame, game_board)
+        elif player_id == 2:
+            order_1 = remote_play.get_remote_orders(connection)
+            player_name = get_player_from_id(1, players)
+            order_2 = ia(player_name, ia_target, game_board, players, ships_ingame, ships_type, ships_structure)
+            remote_play.notify_remote_orders(connection, order_1)
+
+            print('-----')
+            print('Order received: %s' % order_1)
+            print('Order sent: %s' % order_2)
+            print('Player ID = %d' % player_id)
+            print('-----------------')
+            time.sleep(3)
+
+            interpret_orders(new_orders, order_1, player_name, ships_type, players, ships_ingame, game_board)
+            interpret_orders(new_orders, order_2, player_name, ships_type, players, ships_ingame, game_board)
+
+        '''
         player_list = list(players.keys())
 
         if players[player_list[0]]['id'] == 0:
@@ -136,6 +174,7 @@ def start_game(config_name, player_one_type, player_two_type, player_id, opponen
             if 'remote' in [player_one_type, player_two_type]:
                 remote_play.notify_remote_orders(connection, order)
             interpret_orders(new_orders, order, player_list[0], ships_type, players, ships_ingame, game_board)
+        '''
 
         # Buying Phase
         buy_ships(new_orders['buy_orders'], players, ships_ingame, ships_type, game_board)
@@ -1269,7 +1308,7 @@ def check_end_game(info, damage):
     if damage:
         info['empty_round_left'] -= 1
     else:
-        info['empty_round_left'] = 200
+        info['empty_round_left'] = 80
     if info['empty_round_left'] == 0:
         return False
     for portal in info['portals']:
@@ -1709,6 +1748,30 @@ def enemy_close(ship_name, players, ships_ingame, ships_type):
 #
 #   Help functions
 #
+
+def get_player_from_id(player_id, players):
+    """
+    Get the name of the player according to its id
+
+    Parameters
+    ----------
+    player_id: the id of the player (int)
+    players: the infoamrtion of the players (dictionary)
+
+    Returns
+    -------
+    player: the name of the player (str)
+
+    Version
+    -------
+    specification: Thomas Blanchy (v.1 14/05/2018)
+    implementation: Thomas Blanchy (v.1 14/05/2018)
+    """
+
+    for player in players:
+        if player_id == players[player]['id']:
+            return player
+
 
 def get_portal_from_player(player_name, players, info):
     """

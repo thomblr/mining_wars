@@ -171,7 +171,7 @@ def notify_remote_orders(connection, orders):
     
     # send orders
     try:
-        socket_out.sendall(orders)
+        socket_out.sendall(orders.encode())
     except:
         raise IOError('remote player cannot be reached')
 
@@ -199,7 +199,7 @@ def get_remote_orders(connection):
 
     # receive orders    
     try:
-        orders = socket_in.recv(65536)
+        orders = socket_in.recv(65536).decode()
     except:
         raise IOError('remote player cannot be reached')
         
