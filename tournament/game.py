@@ -977,7 +977,7 @@ def interpret_orders(new_orders, orders, player_name, ships_type, players, ships
     """
 
     if len(orders.strip()) > 0:
-        all_orders = orders.split(' ')
+        all_orders = orders.strip().split(' ')
         for order in all_orders:
             order_name = order.split(':')[1]
 
