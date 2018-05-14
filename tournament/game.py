@@ -109,7 +109,6 @@ def start_game(config_name, player_one_type, player_two_type, player_id, opponen
         connection = remote_play.connect_to_player(player_id, opponent_ip, True)
 
     while check_end_game(game_board, no_damage_in_the_round):
-        time.sleep(.2)
         new_orders = {
             'buy_orders': [],
             'lock_orders': [],
@@ -118,16 +117,25 @@ def start_game(config_name, player_one_type, player_two_type, player_id, opponen
             'attack_orders': []
         }
 
-        for player in players:
-            if players[player]['type'] == 'human':
-                order = input('Order of %s: ' % player)
-            elif players[player]['type'] == 'remote':
-                order = remote_play.get_remote_orders(connection)
-            else:
-                order = ia(player, ia_target, game_board, players, ships_ingame, ships_type, ships_structure)
-                if 'remote' in [player_one_type, player_two_type]:
-                    remote_play.notify_remote_orders(connection, order)
-            interpret_orders(new_orders, order, player, ships_type, players, ships_ingame, game_board)
+        # 1 : notify puis get
+        player_list = list(players.keys())
+
+        if players[player_list[0]]['id'] == 0:
+            order = ia(player_list[0], ia_target, game_board, players, ships_ingame, ships_type, ships_structure)
+            if 'remote' in [player_one_type, player_two_type]:
+                remote_play.notify_remote_orders(connection, order)
+            interpret_orders(new_orders, order, player_list[0], ships_type, players, ships_ingame, game_board)
+
+            order_remote = remote_play.get_remote_orders(connection)
+            interpret_orders(new_orders, order_remote, player_list[1], ships_type, players, ships_ingame, game_board)
+        elif players[player_list[0]]['id'] == 1:
+            order_remote = remote_play.get_remote_orders(connection)
+            interpret_orders(new_orders, order_remote, player_list[1], ships_type, players, ships_ingame, game_board)
+
+            order = ia(player_list[0], ia_target, game_board, players, ships_ingame, ships_type, ships_structure)
+            if 'remote' in [player_one_type, player_two_type]:
+                remote_play.notify_remote_orders(connection, order)
+            interpret_orders(new_orders, order, player_list[0], ships_type, players, ships_ingame, game_board)
 
         # Buying Phase
         buy_ships(new_orders['buy_orders'], players, ships_ingame, ships_type, game_board)
