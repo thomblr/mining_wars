@@ -29,33 +29,33 @@ def start_game(config_name, player_one_type, player_two_type, player_id, opponen
 
     # All the data structures that will be used
     ships_type = {
-        'scout': {
+        'Scout': {
             'size': 9,
             'life': 3,
             'attack': 1,
             'range': 3,
             'cost': 3
         },
-        'warship': {
+        'Warship': {
             'size': 21,
             'life': 18,
             'attack': 3,
             'range': 5,
             'cost': 9
         },
-        'excavator-S': {
+        'Excavator-S': {
             'size': 1,
             'tonnage': 1,
             'life': 2,
             'cost': 1
         },
-        'excavator-M': {
+        'Excavator-M': {
             'size': 5,
             'tonnage': 4,
             'life': 3,
             'cost': 2
         },
-        'excavator-L': {
+        'Excavator-L': {
             'size': 9,
             'tonnage': 8,
             'life': 6,
@@ -63,12 +63,12 @@ def start_game(config_name, player_one_type, player_two_type, player_id, opponen
         }
     }
     ships_structure = {
-        'scout': [(0, 0), (1, 0), (0, 1), (-1, 0), (0, -1), (1, 1), (-1, -1), (-1, 1), (1, -1)],
-        'warship': [(0, 0), (1, 0), (0, 1), (-1, 0), (0, -1), (1, 1), (-1, -1), (-1, 1), (1, -1), (-2, -1), (-2, 0),
+        'Scout': [(0, 0), (1, 0), (0, 1), (-1, 0), (0, -1), (1, 1), (-1, -1), (-1, 1), (1, -1)],
+        'Warship': [(0, 0), (1, 0), (0, 1), (-1, 0), (0, -1), (1, 1), (-1, -1), (-1, 1), (1, -1), (-2, -1), (-2, 0),
                     (-2, 1), (-1, 2), (0, 2), (1, 2), (2, 1), (2, 0), (2, -1), (1, -2), (0, -2), (-1, -2)],
-        'excavator-S': [(0, 0)],
-        'excavator-M': [(0, 0), (1, 0), (0, 1), (-1, 0), (0, -1)],
-        'excavator-L': [(0, 0), (1, 0), (0, 1), (-1, 0), (0, -1), (2, 0), (0, 2), (-2, 0), (0, -2)]
+        'Excavator-S': [(0, 0)],
+        'Excavator-M': [(0, 0), (1, 0), (0, 1), (-1, 0), (0, -1)],
+        'Excavator-L': [(0, 0), (1, 0), (0, 1), (-1, 0), (0, -1), (2, 0), (0, 2), (-2, 0), (0, -2)]
     }
     game_board = {}
     ships_ingame = {}
@@ -547,7 +547,7 @@ def buy_ships(orders, players, ships_ingame, ships_type, info):
         ships_ingame[ship_name]['position'] = [player_portal['position'][0], player_portal['position'][1]]
         ships_ingame[ship_name]['life'] = ships_type[ship_type]['life']
 
-        if ship_type in ['excavator-S', 'excavator-M', 'excavator-L']:
+        if ship_type in ['Excavator-S', 'Excavator-M', 'Excavator-L']:
             ships_ingame[ship_name]['ore'] = 0
 
         # Add to players -> 'name' to players[player_name]['ships']
@@ -1104,7 +1104,7 @@ def new_attack_order(order, player_name, players, ships_ingame, ships_type, info
                 # Check Range
                 if check_range(ship_name, [target_pos[0], target_pos[1]], ships_ingame, ships_type):
                     # Check ship type
-                    if ships_ingame[ship_name]['type'] in ['scout', 'warship']:
+                    if ships_ingame[ship_name]['type'] in ['Scout', 'Warship']:
                         new_order = {
                             'order': order,
                             'player_name': player_name
@@ -1179,8 +1179,8 @@ def new_lock_order(order, player_name, players, ships_ingame, info):
     if ship_name in players[player_name]['ships']:
         ship_pos = ships_ingame[ship_name]['position']
 
-        # Check if it is an excavator
-        if ships_ingame[ship_name]['type'] in ['excavator-S', 'excavator-M', 'excavator-L']:
+        # Check if it is an Excavator
+        if ships_ingame[ship_name]['type'] in ['Excavator-S', 'Excavator-M', 'Excavator-L']:
             for asteroid in info['asteroids']:
                 if asteroid['position'] == ship_pos:
                     if ship_name not in asteroid['ships_locked']:
@@ -1230,8 +1230,8 @@ def new_unlock_order(order, player_name, players, ships_ingame, info):
     if ship_name in players[player_name]['ships']:
         ship_pos = ships_ingame[ship_name]['position']
 
-        # Check if it is an excavator
-        if ships_ingame[ship_name]['type'] in ['excavator-S', 'excavator-M', 'excavator-L']:
+        # Check if it is an Excavator
+        if ships_ingame[ship_name]['type'] in ['Excavator-S', 'Excavator-M', 'Excavator-L']:
             for asteroid in info['asteroids']:
                 if asteroid['position'] == ship_pos:
                     if ship_name in asteroid['ships_locked']:
@@ -1391,7 +1391,7 @@ def ia(name, targets, info, players, ships_ingame, ships_type, ships_structure):
     # Lock orders to an asteroid
     for asteroid in info['asteroids']:
         for ship in players[name]['ships']:
-            if ships_ingame[ship]['type'] in ['excavator-S', 'excavator-M', 'excavator-L']:
+            if ships_ingame[ship]['type'] in ['Excavator-S', 'Excavator-M', 'Excavator-L']:
                 stock = ships_type[ships_ingame[ship]['type']]['tonnage'] - ships_ingame[ship]['ore']
                 if asteroid['position'] == ships_ingame[ship]['position'] and stock > 0:
                     if asteroid['ore'] > 0.01:
@@ -1401,7 +1401,7 @@ def ia(name, targets, info, players, ships_ingame, ships_type, ships_structure):
     # Lock orders to a portal
     for portal in info['portals']:
         for ship in players[name]['ships']:
-            if ships_ingame[ship]['type'] in ['excavator-S', 'excavator-M', 'excavator-L']:
+            if ships_ingame[ship]['type'] in ['Excavator-S', 'Excavator-M', 'Excavator-L']:
                 if portal['position'] == ships_ingame[ship]['position'] and ships_ingame[ship]['ore'] > 0:
                     if ship not in portal['ships_locked']:
                         orders.append('%s:lock' % ship)
@@ -1425,8 +1425,8 @@ def ia(name, targets, info, players, ships_ingame, ships_type, ships_structure):
     # Buy orders
     player_ore = int(players[name]['ore'])
     if not players[name]['ships'] and player_ore == 4:
-        orders.append('%s#%d:excavator-M' % (name[:3], random.randint(0, 999)))
-        orders.append('%s#%d:excavator-M' % (name[:3], random.randint(0, 999)))
+        orders.append('%s#%d:Excavator-M' % (name[:3], random.randint(0, 999)))
+        orders.append('%s#%d:Excavator-M' % (name[:3], random.randint(0, 999)))
     else:
         types_of_ship = list(ships_type.keys())
         random.shuffle(types_of_ship)
@@ -1439,21 +1439,21 @@ def ia(name, targets, info, players, ships_ingame, ships_type, ships_structure):
         ships_to_buy = []
 
         if ore_ratio >= 0.8:
-            type_to_buy = random.choice(['excavator-S', 'scout'])
+            type_to_buy = random.choice(['Excavator-S', 'Scout'])
             if player_ore >= ships_type[type_to_buy]['cost']:
                 if random.random() > 0.5:
                     orders.append('%s#%d:%s' % (name[:3], random.randint(0, 999), type_to_buy))
                     player_ore -= ships_type[type_to_buy]['cost']
         elif ore_ratio >= 0.5:
-            type_to_buy = random.choice(['warship', 'scout', 'excavator-L'])
+            type_to_buy = random.choice(['Warship', 'Scout', 'Excavator-L'])
             if player_ore >= ships_type[type_to_buy]['cost']:
-                if random.random() > 0.5 or type_to_buy == 'warship':
+                if random.random() > 0.5 or type_to_buy == 'Warship':
                     ship_name = '%s#%d' % (name[:3], random.randint(0, 999))
                     orders.append('%s:%s' % (ship_name, type_to_buy))
                     ships_to_buy.append((ship_name, type_to_buy))
                     player_ore -= ships_type[type_to_buy]['cost']
         else:
-            type_to_buy = random.choice(['warship'])
+            type_to_buy = random.choice(['Warship'])
             if player_ore >= ships_type[type_to_buy]['cost']:
                 if random.random() > 0.5:
                     ship_name = '%s#%d' % (name[:3], random.randint(0, 999))
@@ -1469,7 +1469,7 @@ def ia(name, targets, info, players, ships_ingame, ships_type, ships_structure):
     attack_this_round = []
     # Attack orders
     for ship in players[name]['ships']:
-        if ships_ingame[ship]['type'] in ['scout', 'warship']:
+        if ships_ingame[ship]['type'] in ['Scout', 'Warship']:
             player_index = list(players.keys()).index(name)
             enemy_player = list(players.keys())[abs(player_index - 1)]
 
@@ -1547,7 +1547,7 @@ def ia(name, targets, info, players, ships_ingame, ships_type, ships_structure):
 
             # --- Apply movement to the target
             if not check_range(ship, target_position, ships_ingame, ships_type) \
-                    or ship_type in ['excavator-S', 'excavator-M', 'excavator-L']:
+                    or ship_type in ['Excavator-S', 'Excavator-M', 'Excavator-L']:
                 r_move = 0 if target_position[0] == current_pos[0] else r_delta / abs(r_delta)
                 c_move = 0 if target_position[1] == current_pos[1] else c_delta / abs(c_delta)
 
@@ -1560,13 +1560,13 @@ def ia(name, targets, info, players, ships_ingame, ships_type, ships_structure):
 
 def set_ship_target(owner_name, ship, targets, info, players, ships_ingame, ships_type):
     """
-    Set target of a scout according to the best asteroids
+    Set target of a Scout according to the best asteroids
 
     Parameters
     ----------
-    owner_name: the name of the player who own the scout (str)
+    owner_name: the name of the player who own the Scout (str)
     ship: the name and the type of the ship (tuple)
-    targets: the current targets of the scout on the board (dictionary)
+    targets: the current targets of the Scout on the board (dictionary)
     info: the information of the asteroids on the board (dictionary)
     players: the information of the players (dictionary)
     ships_ingame: the information of the ships on the board (dictionary)
@@ -1588,13 +1588,13 @@ def set_ship_target(owner_name, ship, targets, info, players, ships_ingame, ship
         current_ore += asteroid['ore']
     ore_ratio = current_ore / ore_started
 
-    if ships_ingame[ship[0]]['type'] == 'scout':
+    if ships_ingame[ship[0]]['type'] == 'Scout':
         # Check if enemy extractor left to avoid targeting asteroids if nobody comes to recolt
         extractor_left = False
         player_index = list(players.keys()).index(owner_name)
         enemy_player = list(players.keys())[abs(player_index - 1)]
         for enemy_ship in players[enemy_player]['ships']:
-            if ships_ingame[enemy_ship]['type'].startswith('excavator'):
+            if ships_ingame[enemy_ship]['type'].startswith('Excavator'):
                 extractor_left = True
 
         if ore_ratio > 0.1 and extractor_left:  # Still some ore left -> Target ships on asteroids
@@ -1614,7 +1614,7 @@ def set_ship_target(owner_name, ship, targets, info, players, ships_ingame, ship
             player_index = list(players.keys()).index(owner_name)
             enemy_portal = info['portals'][abs(player_index - 1)]
             targets[ship[0]] = [enemy_portal['position'][0], enemy_portal['position'][1]]
-    elif ships_ingame[ship[0]]['type'] == 'warship':
+    elif ships_ingame[ship[0]]['type'] == 'Warship':
         # Always target enemy portal
         for player in players:
             if ship[0] not in players[player]['ships']:
@@ -1706,7 +1706,7 @@ def enemy_close(ship_name, players, ships_ingame, ships_type):
     for enemy_ship in players[enemy_player]['ships']:
         enemy_ship_type = ships_ingame[enemy_ship]['type']
 
-        if enemy_ship_type in ['scout', 'warship']:
+        if enemy_ship_type in ['Scout', 'Warship']:
             enemy_ship_pos = ships_ingame[enemy_ship]['position']
 
             r_delta = abs(enemy_ship_pos[0] - ship_pos[0])
@@ -1792,7 +1792,7 @@ def is_locked(ship_name, info, ships_ingame):
     implementation: Joaquim Peremans (v.1 15/04/2018)
     """
 
-    if ships_ingame[ship_name]['type'] in ['excavator-S', 'excavator-M', 'excavator-L']:
+    if ships_ingame[ship_name]['type'] in ['Excavator-S', 'Excavator-M', 'Excavator-L']:
         for asteroid in info['asteroids']:
             if ship_name in asteroid['ships_locked']:
                 return True
@@ -1845,11 +1845,11 @@ def get_ship_radius(ship_type):
     """
 
     types = {
-        'scout': 1,
-        'warship': 2,
-        'excavator-S': 0,
-        'excavator-M': 1,
-        'excavator-L': 2
+        'Scout': 1,
+        'Warship': 2,
+        'Excavator-S': 0,
+        'Excavator-M': 1,
+        'Excavator-L': 2
     }
 
     return types[ship_type]
@@ -1921,7 +1921,7 @@ def check_range(attacker, target_pos, ships_ingame, ships_type):
     c_value = abs(target_pos[1] - attacker_ship['position'][1])
     distance = r_value + c_value
 
-    if attacker_ship['type'] in ['warship', 'scout']:
+    if attacker_ship['type'] in ['Warship', 'Scout']:
         return distance <= ships_type[attacker_ship['type']]['range']
     else:
         return True
