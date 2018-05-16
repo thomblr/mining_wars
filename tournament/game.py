@@ -1439,25 +1439,26 @@ def ia(name, targets, info, players, ships_ingame, ships_type, ships_structure):
         ships_to_buy = []
 
         if ore_ratio >= 0.8:
-            type_to_buy = random.choice(['excavator-S', 'scout'])
+            type_to_buy = random.choice(['Excavator-S', 'Scout'])
             if player_ore >= ships_type[type_to_buy]['cost']:
                 if random.random() > 0.5:
-                    orders.append('%s#%d:%s' % (name[:3], random.randint(0, 999), type_to_buy))
+                    ship_name = '%s#%d' % (name[:3], random.randint(0, 999))
+                    orders.append('%s:%s' % (ship_name, type_to_buy[0].lower() + type_to_buy[1:]))
                     player_ore -= ships_type[type_to_buy]['cost']
         elif ore_ratio >= 0.5:
-            type_to_buy = random.choice(['warship', 'scout', 'excavator-L'])
+            type_to_buy = random.choice(['Warship', 'Scout', 'Excavator-L'])
             if player_ore >= ships_type[type_to_buy]['cost']:
                 if random.random() > 0.5 or type_to_buy == 'Warship':
                     ship_name = '%s#%d' % (name[:3], random.randint(0, 999))
-                    orders.append('%s:%s' % (ship_name, type_to_buy))
+                    orders.append('%s:%s' % (ship_name, type_to_buy[0].lower() + type_to_buy[1:]))
                     ships_to_buy.append((ship_name, type_to_buy))
                     player_ore -= ships_type[type_to_buy]['cost']
         else:
-            type_to_buy = random.choice(['warship'])
+            type_to_buy = random.choice(['Warship'])
             if player_ore >= ships_type[type_to_buy]['cost']:
                 if random.random() > 0.5:
                     ship_name = '%s#%d' % (name[:3], random.randint(0, 999))
-                    orders.append('%s:%s' % (ship_name, type_to_buy))
+                    orders.append('%s:%s' % (ship_name, type_to_buy[0].lower() + type_to_buy[1:]))
                     ships_to_buy.append((ship_name, type_to_buy))
                     player_ore -= ships_type[type_to_buy]['cost']
 
