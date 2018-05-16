@@ -74,13 +74,14 @@ def start_game(config_name, player_one_type, player_two_type, player_id, opponen
     ships_ingame = {}
     players = {}
     ia_target = {}
+    max_round = 500
 
     # Load information from the config file
     info = load_file(config_name)
     game_board['size'] = load_size(info)
     game_board['portals'] = load_portals(info)
     game_board['asteroids'] = load_asteroids(info)
-    game_board['empty_round_left'] = 500
+    game_board['empty_round_left'] = max_round
     game_board['total_ore_on_board'] = 0
 
     for asteroid in game_board['asteroids']:
@@ -110,7 +111,7 @@ def start_game(config_name, player_one_type, player_two_type, player_id, opponen
     if 'remote' in [player_one_type, player_two_type]:
         connection = remote_play.connect_to_player(player_id, opponent_ip, True)
 
-    while check_end_game(game_board, no_damage_in_the_round):
+    while check_end_game(game_board, no_damage_in_the_round, max_round):
         time.sleep(.2)
         new_orders = {
             'buy_orders': [],
@@ -129,8 +130,6 @@ def start_game(config_name, player_one_type, player_two_type, player_id, opponen
             remote_play.notify_remote_orders(connection, order_1)
             order_2 = remote_play.get_remote_orders(connection)
 
-            print('Remote : %s' % order_2)
-
             interpret_orders(new_orders, order_1, list(players.keys())[0], ships_type, players, ships_ingame,
                              game_board)
             interpret_orders(new_orders, order_2, list(players.keys())[1], ships_type, players, ships_ingame,
@@ -140,8 +139,6 @@ def start_game(config_name, player_one_type, player_two_type, player_id, opponen
             order_2 = ia(list(players.keys())[1], ia_target, game_board, players, ships_ingame, ships_type,
                          ships_structure)
             remote_play.notify_remote_orders(connection, order_2)
-
-            print('Remote : %s' % order_1)
 
             interpret_orders(new_orders, order_1, list(players.keys())[0], ships_type, players, ships_ingame,
                              game_board)
@@ -1258,7 +1255,7 @@ def new_unlock_order(order, player_name, players, ships_ingame, info):
 #
 
 
-def check_end_game(info, damage):
+def check_end_game(info, damage, max_round):
     """
     Check if a portal is destroyed or no damage has been done for 20 turns.
 
@@ -1266,6 +1263,7 @@ def check_end_game(info, damage):
     ----------
     info: all the information of the game (dictionary)
     damage: if there was any damage on the round (bool)
+    max_round: the maximum of rounds without damage (int)
 
     Returns
     -------
@@ -1273,14 +1271,14 @@ def check_end_game(info, damage):
 
     Version
     -------
-    specification: Cyril Weber, Thomas Blanchy (v.2 01/04/2018)
-    implementation: Cyril Weber, Thomas Blanchy (v.1 15/04/2018)
+    specification: Cyril Weber, Thomas Blanchy (v.3 16/05/2018)
+    implementation: Cyril Weber, Thomas Blanchy (v.2 16/05/2018)
     """
 
     if damage:
         info['empty_round_left'] -= 1
     else:
-        info['empty_round_left'] = 500
+        info['empty_round_left'] = max_round
     if info['empty_round_left'] == 0:
         return False
     for portal in info['portals']:
@@ -1423,44 +1421,79 @@ def ia(name, targets, info, players, ships_ingame, ships_type, ships_structure):
                     orders.append('%s:release' % ship)
 
     # Buy orders
-    player_ore = int(players[name]['ore'])
+    player_ore = players[name]['ore']
     if not players[name]['ships'] and player_ore == 4:
         orders.append('%s#%d:excavator-M' % (name[:3], random.randint(0, 999)))
         orders.append('%s#%d:excavator-M' % (name[:3], random.randint(0, 999)))
     else:
-        types_of_ship = list(ships_type.keys())
-        random.shuffle(types_of_ship)
-        ore_started = info['total_ore_on_board']
-        current_ore = 0
-        for asteroid in info['asteroids']:
-            current_ore += asteroid['ore']
-        ore_ratio = current_ore / ore_started
+        types_to_buy = []
+        can_buy = True
 
-        ships_to_buy = []
+        nb_s, nb_m, nb_l, nb_scout, nb_warship = 0, 0, 0, 0, 0  # Max: nb_s=6 nb_m=4 nb_l=2
+        for p_ship in players[name]['ships']:
+            if ships_ingame[p_ship]['type'] == 'Excavator-S':
+                nb_s += 1
+            elif ships_ingame[p_ship]['type'] == 'Excavator-M':
+                nb_m += 1
+            elif ships_ingame[p_ship]['type'] == 'Excavator-L':
+                nb_l += 1
+            elif ships_ingame[p_ship]['type'] == 'Scout':
+                nb_scout += 1
+            elif ships_ingame[p_ship]['type'] == 'Warship':
+                nb_warship += 1
 
-        if ore_ratio >= 0.8:
-            type_to_buy = random.choice(['Excavator-S', 'Scout'])
-            if player_ore >= ships_type[type_to_buy]['cost']:
-                if random.random() > 0.5:
-                    ship_name = '%s#%d' % (name[:3], random.randint(0, 999))
-                    orders.append('%s:%s' % (ship_name, type_to_buy[0].lower() + type_to_buy[1:]))
-                    player_ore -= ships_type[type_to_buy]['cost']
-        elif ore_ratio >= 0.5:
-            type_to_buy = random.choice(['Warship', 'Scout', 'Excavator-L'])
-            if player_ore >= ships_type[type_to_buy]['cost']:
-                if random.random() > 0.5 or type_to_buy == 'Warship':
-                    ship_name = '%s#%d' % (name[:3], random.randint(0, 999))
-                    orders.append('%s:%s' % (ship_name, type_to_buy[0].lower() + type_to_buy[1:]))
-                    ships_to_buy.append((ship_name, type_to_buy))
-                    player_ore -= ships_type[type_to_buy]['cost']
-        else:
-            type_to_buy = random.choice(['Warship'])
-            if player_ore >= ships_type[type_to_buy]['cost']:
-                if random.random() > 0.5:
-                    ship_name = '%s#%d' % (name[:3], random.randint(0, 999))
-                    orders.append('%s:%s' % (ship_name, type_to_buy[0].lower() + type_to_buy[1:]))
-                    ships_to_buy.append((ship_name, type_to_buy))
-                    player_ore -= ships_type[type_to_buy]['cost']
+        enemy_scout, enemy_warship = 0, 0
+        player_index = list(players.keys()).index(name)
+        enemy_player = list(players.keys())[abs(player_index - 1)]
+        for enemy_ship in players[enemy_player]['ships']:
+            if ships_ingame[enemy_ship]['type'] == 'Scout':
+                enemy_scout += 1
+            elif ships_ingame[enemy_ship]['type'] == 'Warship':
+                enemy_warship += 1
+
+        while can_buy and player_ore > 0:
+            if nb_s == 4 and nb_m == 2 and nb_l == 2:
+                if enemy_warship + 1 > nb_warship and player_ore >= ships_type['Warship']['cost']:
+                    # Buy warship
+                    types_to_buy.append('warship')
+                    player_ore -= ships_type['Warship']['cost']
+                    nb_warship += 1
+                elif enemy_scout + 2 > nb_scout and player_ore >= ships_type['Scout']['cost']:
+                    # Buy Scout
+                    types_to_buy.append('scout')
+                    player_ore -= ships_type['Scout']['cost']
+                    nb_scout += 1
+                else:
+                    can_buy = False
+            else:
+                if enemy_warship + 2 > nb_warship and player_ore >= ships_type['Warship']['cost']:
+                    # Buy warship
+                    types_to_buy.append('warship')
+                    player_ore -= ships_type['Warship']['cost']
+                    nb_warship += 1
+                elif enemy_scout + 1 > nb_scout and player_ore >= ships_type['Scout']['cost']:
+                    # Buy Scout
+                    types_to_buy.append('scout')
+                    player_ore -= ships_type['Scout']['cost']
+                    nb_scout += 1
+                elif nb_s < 4 and player_ore >= ships_type['Excavator-S']['cost']:
+                    types_to_buy.append('excavator-S')
+                    player_ore -= ships_type['Excavator-S']['cost']
+                    nb_s += 1
+                elif nb_m < 2 and player_ore >= ships_type['Excavator-M']['cost']:
+                    types_to_buy.append('excavator-M')
+                    player_ore -= ships_type['Excavator-M']['cost']
+                    nb_m += 1
+                elif nb_l < 2 and player_ore >= ships_type['Excavator-L']['cost']:
+                    types_to_buy.append('excavator-L')
+                    player_ore -= ships_type['Excavator-L']['cost']
+                    nb_l += 1
+                else:
+                    can_buy = False
+
+        for type_buy in types_to_buy:
+            ship_name = '%s#%d' % (name[:3], random.randint(0, 999))
+            orders.append('%s:%s' % (ship_name, type_buy))
 
     # Update all ships target to know where to move and where to attack
     for player_ship in players[name]['ships']:
@@ -1507,7 +1540,8 @@ def ia(name, targets, info, players, ships_ingame, ships_type, ships_structure):
             attacked = False
 
             for attack_pos in all_pos:
-                if attack_pos in portal_pos_to_attack and attack_pos in pos_to_attack:
+                if attack_pos in portal_pos_to_attack and attack_pos in pos_to_attack \
+                        and not check_friendly_ship(name, attack_pos, players, ships_ingame):
                     if not attacked:
                         orders.append('%s:*%d-%d' % (ship, attack_pos[0], attack_pos[1]))
                         attacked = True
@@ -1515,7 +1549,8 @@ def ia(name, targets, info, players, ships_ingame, ships_type, ships_structure):
 
             if not attacked:
                 for attack_pos in all_pos:
-                    if attack_pos in portal_pos_to_attack:
+                    if attack_pos in portal_pos_to_attack \
+                            and not check_friendly_ship(name, attack_pos, players, ships_ingame):
                         if not attacked:
                             orders.append('%s:*%d-%d' % (ship, attack_pos[0], attack_pos[1]))
                             attacked = True
@@ -1523,7 +1558,8 @@ def ia(name, targets, info, players, ships_ingame, ships_type, ships_structure):
 
             if not attacked:
                 for attack_pos in all_pos:
-                    if attack_pos in pos_to_attack:
+                    if attack_pos in pos_to_attack \
+                            and not check_friendly_ship(name, attack_pos, players, ships_ingame):
                         if not attacked:
                             orders.append('%s:*%d-%d' % (ship, attack_pos[0], attack_pos[1]))
                             attacked = True
@@ -1594,11 +1630,15 @@ def set_ship_target(owner_name, ship, targets, info, players, ships_ingame, ship
         extractor_left = False
         player_index = list(players.keys()).index(owner_name)
         enemy_player = list(players.keys())[abs(player_index - 1)]
+        enemy_portal = info['portals'][abs(player_index - 1)]
         for enemy_ship in players[enemy_player]['ships']:
             if ships_ingame[enemy_ship]['type'].startswith('Excavator'):
                 extractor_left = True
 
-        if ore_ratio > 0.1 and extractor_left:  # Still some ore left -> Target ships on asteroids
+        if enemy_close(ship[0], players, ships_ingame, ships_type):
+            enemy_s = enemy_close(ship[0], players, ships_ingame, ships_type)
+            targets[ship[0]] = enemy_s['position']
+        elif ore_ratio > 0.1 and extractor_left:  # Still some ore left -> Target ships on asteroids
             if ship[0] in targets:
                 for asteroid in info['asteroids']:
                     if asteroid['position'][0] == targets[ship[0]][0] \
@@ -1609,11 +1649,9 @@ def set_ship_target(owner_name, ship, targets, info, players, ships_ingame, ship
                             targets[ship[0]] = [best_asteroid['position'][0], best_asteroid['position'][1]]
             else:
                 # Find best asteroid to attack
-                best_asteroid = dict(find_best_asteroid_to_attack(owner_name, info, targets, players))
+                best_asteroid = get_closest_asteroid(info, enemy_portal['position'])
                 targets[ship[0]] = [best_asteroid['position'][0], best_asteroid['position'][1]]
         else:  # -> Target enemy portal as there is not any ore left
-            player_index = list(players.keys()).index(owner_name)
-            enemy_portal = info['portals'][abs(player_index - 1)]
             targets[ship[0]] = [enemy_portal['position'][0], enemy_portal['position'][1]]
     elif ships_ingame[ship[0]]['type'] == 'Warship':
         # Always target enemy portal
@@ -1678,6 +1716,33 @@ def find_best_asteroid_to_attack(player, info, targets, players):
     return best_asteroid
 
 
+def check_friendly_ship(player_name, position, players, ships_ingame):
+    """
+    Check whether or not there is a ship at the position.
+
+    Parameters
+    ----------
+    player_name: the name of the player (str)
+    position: the position targeted (list)
+    players: the information of the players (dictionary)
+    ships_ingame: the information of the ships on the board (dictionary)
+
+    Returns
+    -------
+    ship: whether there is a friendly ship or not (bool)
+
+    Version
+    -------
+    specification: Thomas Blanchy (v.1 16/05/2018)
+    implementation: Thomas Blanchy (v.1 16/05/2018)
+    """
+
+    for ship in players[player_name]['ships']:
+        if position == ships_ingame[ship]['position']:
+            return True
+    return False
+
+
 def enemy_close(ship_name, players, ships_ingame, ships_type):
     """
     Check if there is any enemy attack ship close to a certain ship.
@@ -1713,7 +1778,7 @@ def enemy_close(ship_name, players, ships_ingame, ships_type):
             r_delta = abs(enemy_ship_pos[0] - ship_pos[0])
             c_delta = abs(enemy_ship_pos[1] - ship_pos[1])
 
-            if r_delta + c_delta < ships_type[ships_ingame[enemy_ship]['type']]['range'] + 1:
+            if r_delta + c_delta < ships_type[ships_ingame[enemy_ship]['type']]['range'] + 2:
                 return ships_ingame[enemy_ship]
     return False
 
