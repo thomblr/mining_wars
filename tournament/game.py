@@ -167,7 +167,7 @@ def start_game(config_name, player_one_type, player_two_type, player_id, opponen
 
         # Show board & information
         draw_board(game_board, ships_ingame, ships_structure, players)
-        show_information(game_board, players, ships_ingame, True)
+        show_information(game_board, players, ships_ingame, False)
 
     end_game(players, game_board)
     print('Game Over!')
