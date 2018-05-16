@@ -129,9 +129,6 @@ def start_game(config_name, player_one_type, player_two_type, player_id, opponen
             remote_play.notify_remote_orders(connection, order_1)
             order_2 = remote_play.get_remote_orders(connection)
 
-            print(order_2)
-            time.sleep(1)
-
             interpret_orders(new_orders, order_1, list(players.keys())[0], ships_type, players, ships_ingame,
                              game_board)
             interpret_orders(new_orders, order_2, list(players.keys())[1], ships_type, players, ships_ingame,
