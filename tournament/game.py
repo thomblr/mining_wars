@@ -1425,8 +1425,8 @@ def ia(name, targets, info, players, ships_ingame, ships_type, ships_structure):
     # Buy orders
     player_ore = int(players[name]['ore'])
     if not players[name]['ships'] and player_ore == 4:
-        orders.append('%s#%d:Excavator-M' % (name[:3], random.randint(0, 999)))
-        orders.append('%s#%d:Excavator-M' % (name[:3], random.randint(0, 999)))
+        orders.append('%s#%d:excavator-M' % (name[:3], random.randint(0, 999)))
+        orders.append('%s#%d:excavator-M' % (name[:3], random.randint(0, 999)))
     else:
         types_of_ship = list(ships_type.keys())
         random.shuffle(types_of_ship)
@@ -1439,13 +1439,13 @@ def ia(name, targets, info, players, ships_ingame, ships_type, ships_structure):
         ships_to_buy = []
 
         if ore_ratio >= 0.8:
-            type_to_buy = random.choice(['Excavator-S', 'Scout'])
+            type_to_buy = random.choice(['excavator-S', 'scout'])
             if player_ore >= ships_type[type_to_buy]['cost']:
                 if random.random() > 0.5:
                     orders.append('%s#%d:%s' % (name[:3], random.randint(0, 999), type_to_buy))
                     player_ore -= ships_type[type_to_buy]['cost']
         elif ore_ratio >= 0.5:
-            type_to_buy = random.choice(['Warship', 'Scout', 'Excavator-L'])
+            type_to_buy = random.choice(['warship', 'scout', 'excavator-L'])
             if player_ore >= ships_type[type_to_buy]['cost']:
                 if random.random() > 0.5 or type_to_buy == 'Warship':
                     ship_name = '%s#%d' % (name[:3], random.randint(0, 999))
@@ -1453,7 +1453,7 @@ def ia(name, targets, info, players, ships_ingame, ships_type, ships_structure):
                     ships_to_buy.append((ship_name, type_to_buy))
                     player_ore -= ships_type[type_to_buy]['cost']
         else:
-            type_to_buy = random.choice(['Warship'])
+            type_to_buy = random.choice(['warship'])
             if player_ore >= ships_type[type_to_buy]['cost']:
                 if random.random() > 0.5:
                     ship_name = '%s#%d' % (name[:3], random.randint(0, 999))
