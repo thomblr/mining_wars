@@ -2,9 +2,10 @@ import colored
 import random
 import math
 import remote_play
+import time
 
 
-def start_game(config_name, player_one_type, player_two_type, player_id, opponent_ip='127.0.0.1'):
+def start_game(config_name, player_one_type, player_two_type, opponent_ip='127.0.0.1'):
     """
     The main function to start the game.
 
@@ -73,7 +74,7 @@ def start_game(config_name, player_one_type, player_two_type, player_id, opponen
     ships_ingame = {}
     players = {}
     ia_target = {}
-    max_round = 500
+    max_round = 200
 
     # Load information from the config file
     info = load_file(config_name)
@@ -109,9 +110,15 @@ def start_game(config_name, player_one_type, player_two_type, player_id, opponen
     # Connexion reseau
     connection = ''
     if 'remote' in [player_one_type, player_two_type]:
+        player_id = 0
+        if player_one_type == 'remote':
+            player_id = 1
+        elif player_two_type == 'remote':
+            player_id = 2
         connection = remote_play.connect_to_player(player_id, opponent_ip, True)
 
     while check_end_game(game_board, no_damage_in_the_round, max_round):
+        time.sleep(.2)
         new_orders = {
             'buy_orders': [],
             'lock_orders': [],
@@ -123,7 +130,7 @@ def start_game(config_name, player_one_type, player_two_type, player_id, opponen
         # 1 : notify puis get
         # 2 : get puis notify
 
-        if player_id == 1:
+        if player_one_type == 'ia' and player_two_type == 'remote':
             order_1 = ia(list(players.keys())[0], ia_target, game_board, players, ships_ingame, ships_type,
                          ships_structure)
             remote_play.notify_remote_orders(connection, order_1)
@@ -133,7 +140,7 @@ def start_game(config_name, player_one_type, player_two_type, player_id, opponen
                              game_board)
             interpret_orders(new_orders, order_2, list(players.keys())[1], ships_type, players, ships_ingame,
                              game_board)
-        elif player_id == 2:
+        elif player_one_type == 'remote' and player_two_type == 'ia':
             order_1 = remote_play.get_remote_orders(connection)
             order_2 = ia(list(players.keys())[1], ia_target, game_board, players, ships_ingame, ships_type,
                          ships_structure)
